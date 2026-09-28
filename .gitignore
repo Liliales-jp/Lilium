@@ -1,0 +1,26 @@
+# Build and IDE output
+[Bb]in/
+[Oo]bj/
+.vs/
+.nuget-packages/
+.nuget-appdata/
+*.user
+*.suo
+*.cache
+
+# Local runtime data and diagnostics
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.log
+*.dmp
+*.mdmp
+*.pdb
+
+# Private signing material
+*.pfx
+*.p12
+*.snk
+*.pem
+*.key

@@ -1,0 +1,93 @@
+<Window
+    x:Class="Lilium.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Lilium"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Lilium">
+    <Grid x:Name="RootGrid" Background="Transparent" AllowDrop="True" DragEnter="Files_DragOver" DragOver="Files_DragOver" Drop="Files_Drop" Loaded="RootGrid_Loaded">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="300" MinWidth="220" /><ColumnDefinition Width="6" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+        <InfoBar x:Name="OperationCloseNotice" Grid.ColumnSpan="3" Canvas.ZIndex="1000" VerticalAlignment="Top" Severity="Warning" IsOpen="False" IsClosable="True" />
+        <InfoBar x:Name="RecordRecoveryNotice" Grid.ColumnSpan="3" Canvas.ZIndex="1001" VerticalAlignment="Bottom" Severity="Error" IsOpen="False" IsClosable="False">
+            <InfoBar.ActionButton>
+                <Button Content="{StaticResource Ui_MainWindow_001}" Click="RetryOperationRecords_Click" />
+            </InfoBar.ActionButton>
+        </InfoBar>
+        <Grid Padding="12" RowSpacing="12">
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+            <Button x:Name="ClearCacheButton" Grid.Row="3" Content="{StaticResource Ui_MainWindow_002}" HorizontalAlignment="Stretch" Click="Settings_Click" />
+            <TextBlock Text="{StaticResource Ui_MainWindow_003}" Style="{StaticResource SubtitleTextBlockStyle}" />
+            <ListView x:Name="QuickAccessList" Grid.Row="1" MaxHeight="180" IsItemClickEnabled="True" ItemClick="QuickAccessList_ItemClick">
+                <ListView.ItemTemplate><DataTemplate x:DataType="local:QuickAccessItem"><TextBlock Padding="4" RightTapped="QuickAccess_RightTapped" Text="{x:Bind Name}" TextTrimming="CharacterEllipsis" /></DataTemplate></ListView.ItemTemplate>
+            </ListView>
+            <Grid Grid.Row="2" RowSpacing="8" Padding="0,12,0,0" BorderThickness="0,1,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                <TextBlock Text="PC" Style="{StaticResource SubtitleTextBlockStyle}" />
+                <TreeView x:Name="FolderTree" Grid.Row="1" SelectionMode="Single" CanDragItems="False" CanReorderItems="False" AllowDrop="True" RightTapped="Tree_RightTapped" Expanding="FolderTree_Expanding" SelectionChanged="FolderTree_SelectedItemChanged">
+                    <TreeView.ItemTemplate><DataTemplate><TreeViewItem IsExpanded="{Binding IsExpanded, Mode=TwoWay}" AllowDrop="True" DragOver="Files_DragOver" Drop="Files_Drop" Content="{Binding Content.Name}" /></DataTemplate></TreeView.ItemTemplate>
+                </TreeView>
+            </Grid>
+        </Grid>
+        <Border Grid.Column="1" Width="1" HorizontalAlignment="Center" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+        <Grid Grid.Column="2" Padding="16" RowSpacing="12">
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+            <StackPanel Spacing="6">
+            <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <Button x:Name="BackButton" Width="56" Height="32" Click="HistoryBack_Click" ToolTipService.ToolTip="{StaticResource Ui_MainWindow_004}" AutomationProperties.Name="{StaticResource Ui_MainWindow_005}"><FontIcon Glyph="&#xE72B;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="12" /></Button>
+                <Button x:Name="ForwardButton" Width="56" Height="32" Grid.Column="1" Click="HistoryForward_Click" ToolTipService.ToolTip="{StaticResource Ui_MainWindow_006}" AutomationProperties.Name="{StaticResource Ui_MainWindow_007}"><FontIcon Glyph="&#xE72A;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="12" /></Button>
+                <Button Width="56" Height="32" Grid.Column="2" ToolTipService.ToolTip="{StaticResource Ui_MainWindow_008}" AutomationProperties.Name="{StaticResource Ui_MainWindow_009}" Click="Up_Click"><FontIcon Glyph="&#xE74A;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="12" /></Button>
+                <AutoSuggestBox x:Name="CurrentFolderText" Grid.Column="3" PlaceholderText="{StaticResource Ui_MainWindow_010}" TextChanged="Address_TextChanged" QuerySubmitted="Address_Submitted" />
+                <Button Width="56" Height="32" Grid.Column="4" ToolTipService.ToolTip="{StaticResource Ui_MainWindow_011}" AutomationProperties.Name="{StaticResource Ui_MainWindow_012}" Click="Refresh_Click"><FontIcon Glyph="&#xE72C;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="12" /></Button>
+                <Button Grid.Column="5" Content="{StaticResource Ui_MainWindow_013}" Click="Recent_Click" />
+            </Grid>
+            </StackPanel>
+            <ScrollViewer x:Name="FilterScroll" Grid.Row="1" HorizontalContentAlignment="Stretch" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled">
+            <Grid MinWidth="{Binding ViewportWidth, ElementName=FilterScroll}" ColumnSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="160" /><ColumnDefinition Width="160" /><ColumnDefinition Width="160" /><ColumnDefinition Width="*" /><ColumnDefinition Width="160" /><ColumnDefinition Width="160" /><ColumnDefinition Width="240" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <ComboBox x:Name="BindingBox" Header="{StaticResource Ui_MainWindow_014}" Width="160" SelectionChanged="BindingBox_Changed"><ComboBoxItem Content="{StaticResource Ui_MainWindow_015}" Tag="right" IsSelected="True" /><ComboBoxItem Content="{StaticResource Ui_MainWindow_016}" Tag="left" /></ComboBox>
+                <ComboBox x:Name="SortBox" Width="160" Grid.Column="1" Header="{StaticResource Ui_MainWindow_017}" SelectionChanged="Filters_Changed"><ComboBoxItem Content="{StaticResource Ui_MainWindow_018}" Tag="name" IsSelected="True" /><ComboBoxItem Content="{StaticResource Ui_MainWindow_019}" Tag="modified" /></ComboBox>
+                <ComboBox x:Name="FileSortBox" Width="160" Grid.Column="2" Header="{StaticResource Ui_MainWindow_020}" SelectionChanged="Filters_Changed"><ComboBoxItem Content="{StaticResource Ui_MainWindow_021}" Tag="name" IsSelected="True" /><ComboBoxItem Content="{StaticResource Ui_MainWindow_022}" Tag="modified" /></ComboBox>
+                <ComboBox x:Name="ThumbnailSizeBox" Width="160" Grid.Column="3" Header="{StaticResource Ui_MainWindow_023}" SelectionChanged="ThumbnailSizeBox_SelectionChanged"><ComboBoxItem Content="S" Tag="S" /><ComboBoxItem Content="M" Tag="M" IsSelected="True" /><ComboBoxItem Content="L" Tag="L" /></ComboBox>
+                <ComboBox x:Name="FolderRatingBox" Width="160" Grid.Column="5" Header="{StaticResource Ui_MainWindow_024}" SelectionChanged="Filters_Changed"><ComboBoxItem Content="{StaticResource Ui_MainWindow_025}" Tag="0" IsSelected="True" /><ComboBoxItem Content="{StaticResource Ui_MainWindow_026}" Tag="5" /><ComboBoxItem Content="{StaticResource Ui_MainWindow_027}" Tag="4" /><ComboBoxItem Content="{StaticResource Ui_MainWindow_028}" Tag="3" /><ComboBoxItem Content="{StaticResource Ui_MainWindow_029}" Tag="2" /><ComboBoxItem Content="{StaticResource Ui_MainWindow_030}" Tag="1" /></ComboBox>
+                <ComboBox x:Name="FileRatingBox" Width="160" Grid.Column="6" Header="{StaticResource Ui_MainWindow_031}" SelectionChanged="Filters_Changed"><ComboBoxItem Content="{StaticResource Ui_MainWindow_032}" Tag="0" IsSelected="True" /><ComboBoxItem Content="{StaticResource Ui_MainWindow_033}" Tag="5" /><ComboBoxItem Content="{StaticResource Ui_MainWindow_034}" Tag="4" /><ComboBoxItem Content="{StaticResource Ui_MainWindow_035}" Tag="3" /><ComboBoxItem Content="{StaticResource Ui_MainWindow_036}" Tag="2" /><ComboBoxItem Content="{StaticResource Ui_MainWindow_037}" Tag="1" /></ComboBox>
+                <TextBox x:Name="KeywordBox" Width="240" Grid.Column="7" Header="{StaticResource Ui_MainWindow_038}" PlaceholderText="{StaticResource Ui_MainWindow_039}" KeyDown="KeywordBox_KeyDown" />
+                <SplitButton Grid.Column="8" VerticalAlignment="Bottom" Content="{StaticResource Ui_MainWindow_040}" Click="SearchSplit_Click"><SplitButton.Flyout><MenuFlyout><ToggleMenuFlyoutItem x:Name="RecursiveSearch" Text="{StaticResource Ui_MainWindow_041}" /></MenuFlyout></SplitButton.Flyout></SplitButton>
+                <Button Grid.Column="9" VerticalAlignment="Bottom" Content="{StaticResource Ui_MainWindow_042}" Click="ClearSearch_Click" />
+            </Grid>
+            </ScrollViewer>
+            <GridView x:Name="ThumbnailGrid" Grid.Row="2" CanDragItems="True" CanReorderItems="False" AllowDrop="True" ContainerContentChanging="ThumbnailContainer_Changing" DragOver="Files_DragOver" Drop="Files_Drop" SelectionMode="Extended" RightTapped="Files_RightTapped">
+                <GridView.Resources>
+                    <ResourceDictionary>
+                        <ResourceDictionary.ThemeDictionaries>
+                            <ResourceDictionary x:Key="Default">
+                                <SolidColorBrush x:Key="GridViewItemBackgroundSelected" Color="#38FFFFFF" />
+                                <SolidColorBrush x:Key="GridViewItemBackgroundSelectedPointerOver" Color="#48FFFFFF" />
+                                <SolidColorBrush x:Key="GridViewItemBackgroundSelectedPressed" Color="#58FFFFFF" />
+                            </ResourceDictionary>
+                            <ResourceDictionary x:Key="Light">
+                                <SolidColorBrush x:Key="GridViewItemBackgroundSelected" Color="#28000000" />
+                                <SolidColorBrush x:Key="GridViewItemBackgroundSelectedPointerOver" Color="#38000000" />
+                                <SolidColorBrush x:Key="GridViewItemBackgroundSelectedPressed" Color="#48000000" />
+                            </ResourceDictionary>
+                            <ResourceDictionary x:Key="HighContrast">
+                                <SolidColorBrush x:Key="GridViewItemBackgroundSelected" Color="{ThemeResource SystemColorWindowColor}" />
+                                <SolidColorBrush x:Key="GridViewItemBackgroundSelectedPointerOver" Color="{ThemeResource SystemColorWindowColor}" />
+                                <SolidColorBrush x:Key="GridViewItemBackgroundSelectedPressed" Color="{ThemeResource SystemColorWindowColor}" />
+                            </ResourceDictionary>
+                        </ResourceDictionary.ThemeDictionaries>
+                    </ResourceDictionary>
+                </GridView.Resources>
+                <GridView.ItemContainerStyle><Style TargetType="GridViewItem"><Setter Property="AllowDrop" Value="True" /></Style></GridView.ItemContainerStyle>
+                <GridView.ItemsPanel><ItemsPanelTemplate><ItemsWrapGrid Orientation="Horizontal" /></ItemsPanelTemplate></GridView.ItemsPanel>
+                <GridView.ItemTemplate><DataTemplate x:DataType="local:LibraryItem">
+                    <Grid Width="{x:Bind CardWidth}" Height="{x:Bind CardHeight}" Margin="4" Background="Transparent" AllowDrop="True" DragOver="Files_DragOver" Drop="Files_Drop" ToolTipService.ToolTip="{x:Bind Path}" PointerEntered="Item_PointerEntered" DoubleTapped="Thumbnail_DoubleTapped" RightTapped="Thumbnail_RightTapped">
+                        <Border CornerRadius="8" Margin="0,0,0,32"><Grid><Grid.Background><ImageBrush ImageSource="{x:Bind Thumbnail, Mode=OneWay}" Stretch="Uniform" AlignmentX="Center" AlignmentY="Center" /></Grid.Background><FontIcon Glyph="&#xE8B7;" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{x:Bind FolderIconVisibility, Mode=OneWay}" /></Grid></Border>
+                        <FontIcon Glyph="&#xE8A5;" FontSize="48" Margin="0,0,0,32" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{x:Bind FileIconVisibility}" />
+                        <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="6" Padding="5,2" CornerRadius="4" Background="#CC202020" Visibility="{x:Bind RatingVisibility}" IsHitTestVisible="False">
+                            <TextBlock Text="{x:Bind RatingLabel}" Foreground="#FFFFD166" FontSize="12" />
+                        </Border>
+                        <TextBlock Text="{x:Bind DisplayName}" VerticalAlignment="Bottom" Margin="8,0,8,4" TextTrimming="CharacterEllipsis" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                    </Grid>
+                </DataTemplate></GridView.ItemTemplate>
+            </GridView>
+        </Grid>
+    </Grid>
+</Window>

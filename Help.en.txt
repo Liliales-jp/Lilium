@@ -1,0 +1,60 @@
+Lilium Help
+
+The keys and mouse actions below are defaults. Edit supported commands under Settings > Keyboard and select Apply to update all windows immediately. Check that page for your current bindings. Draft changes are inactive until applied.
+
+Library
+Open a PDF to read its pages in the reader. The first page is used as its cover thumbnail. PDFs requiring an opening password, PDFs inside ZIP/CBZ archives, and a PDF page overview are not supported.
+Open a ZIP or CBZ to browse its images, folders, and other files. Files that are not supported images are shown but cannot be opened. Use Up, Back, and Forward as you would in a normal folder.
+Archive contents are read-only. Copy, move, delete, rating, Undo, and Quick Access do not apply to entries inside an archive. The archive file itself can be managed as a normal file.
+Password-protected ZIP and CBZ files are not supported. RAR and 7z are not supported.
+Enter / Space: Open the selected item (when exactly one item is selected)
+Backspace / Mouse Back: Back in folder history
+Mouse Forward: Forward in folder history
+Go up one folder: Unassigned by default (the toolbar button remains available)
+Ctrl+C / Ctrl+X / Ctrl+V: Copy / Cut / Paste
+If exactly one folder is selected, Ctrl+V pastes into it; otherwise, it pastes into the current location.
+Even when the folder tree has focus, Ctrl+V uses the selection in the list on the right.
+In a text input, Ctrl+V pastes text normally.
+F2: Rename
+Del: Move to Recycle Bin
+Ctrl+Shift+N: New folder
+Ctrl+Z: Undo the most recent file operation (operations with overwriting cannot be undone)
+Ctrl+A / Esc: Select all / Clear selection
+F5: Refresh
+0–5: Change the selected item's rating (rating information is added to its name)
+Ctrl / Shift + click: Select multiple items
+Left-click a blank area: Clear selection
+Drag: Move; Ctrl + drag: Copy
+
+Reader
+The reading controls below also work with PDFs. Pages follow the PDF's order; a landscape spread remains one page. PDF editing, text search, and printing are not supported.
+The reader opens full screen on the same monitor as the library window that opened it.
+Move the pointer into the bottom 10% of the screen to show the controls. Move away from that area and the panel to hide them.
+Use the panel to jump to the first or last page, turn pages, close the reader, and change the page mode or binding direction.
+Binding changes are saved and also applied to the library window that opened this reader.
+Right-to-left: Left-click for the next page, right-click for the previous page
+Left-to-right: Right-click for the next page, left-click for the previous page
+Mouse wheel down / up: Next / Previous
+Mouse Back / Backspace: Close the reader
+Left and right arrows / A and D: Turn pages according to the reading direction
+Down / Up arrow: One page forward / back
+Space: Next page
+1 / 2: Single-page / Two-page display
+
+Dialogs
+Enter: Primary action (create, rename, continue, save, etc.)
+Esc: Cancel / Close
+During an operation, Esc requests cancellation and waits for a safe stop.
+When a selection list is open, it handles selection first.
+
+Settings
+Open Settings at the bottom left for language, cache settings, and this help.
+There is one settings window per running app instance.
+Closing the last library window also closes settings. An active cache operation finishes before the app exits.
+Select Japanese or English under Display > Language. The selection is saved immediately and takes effect after restarting Lilium. Close all Lilium windows before starting again.
+Choose the cache size with the slider and select Apply to save. Cache deletion requires confirmation.
+Thumbnails use JPEG quality 70, up to 300 × 400 pixels, shared by S/M/L display sizes.
+The size limit is 500 MB–5 GB. When exceeded, the least recently used cache is removed until usage reaches 90% of the limit.
+Clear cache on a folder regenerates images directly inside that folder.
+Original images, ratings, and settings are not deleted. Images in subfolders are not included.
+The current list is refreshed and regenerated; other locations regenerate when opened next.
