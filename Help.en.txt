@@ -24,7 +24,8 @@ F5: Refresh
 0–5: Change the selected item's rating (rating information is added to its name)
 Ctrl / Shift + click: Select multiple items
 Left-click a blank area: Clear selection
-Drag: Move; Ctrl + drag: Copy
+Drag: Move within the same drive; copy to another drive. Ctrl + drag: Copy; Shift + drag: Move.
+Turn on Always move under Settings > Controls > File operations to move regardless of drive, except while holding Ctrl to copy.
 
 Reader
 The reading controls below also work with PDFs. Pages follow the PDF's order; a landscape spread remains one page. PDF editing, text search, and printing are not supported.

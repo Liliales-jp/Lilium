@@ -60,6 +60,7 @@ internal sealed partial class SettingsWindow : Window
         AddItem(L10n.Get("SettingsWindow_004"), "language");
         AddHeader(L10n.Get("Keys_Operations"));
         AddItem(L10n.Get("SettingsWindow_006"), "keys");
+        AddItem(L10n.Get("SettingsWindow_FileOperations"), "fileoperations");
         AddHeader(L10n.Get("SettingsWindow_007"));
         AddItem(L10n.Get("SettingsWindow_008"), "size");
         AddItem(L10n.Get("SettingsWindow_009"), "clear");
@@ -127,6 +128,9 @@ internal sealed partial class SettingsWindow : Window
         {
             case "keys":
                 BuildKeysSection();
+                break;
+            case "fileoperations":
+                BuildFileOperationsSection();
                 break;
             case "language":
                 BuildLanguageSection();
@@ -223,6 +227,39 @@ internal sealed partial class SettingsWindow : Window
         };
         _body.Children.Add(choice);
         _body.Children.Add(Text(L10n.Get("Language_Description")));
+    }
+
+    private void BuildFileOperationsSection()
+    {
+        bool saved = AppServices.DragAlwaysMove;
+        var alwaysMove = new CheckBox
+        {
+            Content = L10n.Get("SettingsWindow_DragAlwaysMove"),
+            IsChecked = saved
+        };
+        bool restoring = false;
+        void Changed(object sender, RoutedEventArgs e)
+        {
+            if (restoring) return;
+            bool selected = alwaysMove.IsChecked == true;
+            try
+            {
+                AppServices.SetDragAlwaysMove(selected);
+                saved = selected;
+                _status.Text = L10n.Get("SettingsWindow_028");
+            }
+            catch (Exception ex)
+            {
+                restoring = true;
+                alwaysMove.IsChecked = saved;
+                restoring = false;
+                Report(L10n.Get("SettingsWindow_026"), ex);
+            }
+        }
+        alwaysMove.Checked += Changed;
+        alwaysMove.Unchecked += Changed;
+        _body.Children.Add(alwaysMove);
+        _body.Children.Add(Text(L10n.Get("SettingsWindow_DragDescription")));
     }
 
     private void SetBusy(bool busy)

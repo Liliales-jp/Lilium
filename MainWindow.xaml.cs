@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using System.Collections.ObjectModel;
 using Windows.System;
 
@@ -85,6 +86,7 @@ public sealed partial class MainWindow : Window
             App.WriteDiagnosticLog("Initial folder open failed", ex);
             if (!_closed) await ShowMessageAsync(L10n.Get("MainWindow_xaml_003"), ex.Message);
         }
+        if (!_closed) RevealInitialFolderInTree();
         if (!_closed) await CheckOperationNoticesAsync();
         if (!_closed && AppServices.Inputs.TakeLoadNotice())
             await ShowMessageAsync(L10n.Get("SettingsWindow_006"), L10n.Get("Keys_LoadError"));
@@ -546,6 +548,44 @@ public sealed partial class MainWindow : Window
             }
         }
         finally { _syncingTree = false; }
+    }
+
+    private void RevealInitialFolderInTree()
+    {
+        var folder = _currentFolder;
+        if (folder is null || ArchiveLocation.IsVirtual(folder)) return;
+
+        // The first navigation can finish before TreeView has laid out its nodes.
+        // Repeat the expansion after layout, then reveal the selected folder.
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (_closed || !string.Equals(_currentFolder, folder, StringComparison.OrdinalIgnoreCase)) return;
+            FolderTree.UpdateLayout();
+            SyncTree(folder);
+            FolderTree.UpdateLayout();
+            if (FolderTree.SelectedNode is not { Content: FolderNode selected } node ||
+                !string.Equals(selected.Path.TrimEnd('\\'), folder.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)) return;
+
+            // TreeView virtualizes off-screen nodes, so first ask its flattened list
+            // to realize the item when ContainerFromNode cannot find it yet.
+            if (FolderTree.ContainerFromNode(node) is not UIElement)
+            {
+                FindTreeViewList(FolderTree)?.ScrollIntoView(node);
+                FolderTree.UpdateLayout();
+            }
+            (FolderTree.ContainerFromNode(node) as UIElement)?.StartBringIntoView();
+        });
+    }
+
+    private static TreeViewList? FindTreeViewList(DependencyObject parent)
+    {
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is TreeViewList list) return list;
+            if (FindTreeViewList(child) is { } nested) return nested;
+        }
+        return null;
     }
 
     private void QuickAccess_RightTapped(object sender, RightTappedRoutedEventArgs e)

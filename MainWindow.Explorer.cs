@@ -16,6 +16,8 @@ public sealed partial class MainWindow
     private CancellationTokenSource? _suggestionCancellation;
     private bool _closed;
     private string? _lastDragTrace;
+    private Task<IReadOnlyList<string>>? _dragSourcePathsTask;
+    private int _dragFeedbackVersion;
     [System.Diagnostics.Conditional("DEBUG")]
     private void TraceDrag(string message)
     {
@@ -48,6 +50,14 @@ public sealed partial class MainWindow
         Closed += (_, _) =>
         {
             _closed = true;
+            HideDragHint();
+            if (_dragHintTimer is not null)
+            {
+                _dragHintTimer.Tick -= DragHint_Tick;
+                _dragHintTimer = null;
+            }
+            ++_dragFeedbackVersion;
+            _dragSourcePathsTask = null;
             AppServices.Store.QuickAccessChanged -= Store_QuickAccessChanged;
             _folderRequests.Close();
             CancelNavigationFocus();
@@ -308,19 +318,68 @@ public sealed partial class MainWindow
         catch (Exception ex) { e.Cancel = true; TraceDrag("Starting failed: " + ex); }
         finally { deferral.Complete(); }
     }
-    private void Files_DropCompleted(UIElement sender, DropCompletedEventArgs e) => TraceDrag($"Completed result={e.DropResult}");
-    private void Files_DragOver(object sender, DragEventArgs e)
+    private void Files_DropCompleted(UIElement sender, DropCompletedEventArgs e)
     {
+        ++_dragFeedbackVersion;
+        _dragSourcePathsTask = null;
+        HideDragHint();
+        TraceDrag($"Completed result={e.DropResult}");
+    }
+    private void Files_DragLeave(object sender, DragEventArgs e)
+    {
+        ++_dragFeedbackVersion;
+        _dragSourcePathsTask = null;
+        HideDragHint();
+    }
+    private async void Files_DragOver(object sender, DragEventArgs e)
+    {
+        int feedbackVersion = ++_dragFeedbackVersion;
         var destination = FolderAt(sender) ?? DropDestination(e);
-        e.AcceptedOperation = !_fileOperationBusy && destination is not null && HasDragFiles(e)
-            ? DragOperation(e) & e.AllowedOperations : DataPackageOperation.None;
-        TraceDrag($"Over source={e.OriginalSource?.GetType().Name} destination={destination} modifiers={e.Modifiers} allowed={e.AllowedOperations} requested={e.DataView.RequestedOperation} accepted={e.AcceptedOperation} busy={_fileOperationBusy}");
-        if (e.AcceptedOperation != DataPackageOperation.None)
-        {
-            e.DragUIOverride.Caption = L10n.Format("MainWindow_Explorer_007", Path.GetFileName(destination!.TrimEnd('\\')), (e.AcceptedOperation == DataPackageOperation.Copy ? L10n.Get("MainWindow_Explorer_005") : L10n.Get("MainWindow_Explorer_006")));
-            e.DragUIOverride.IsCaptionVisible = true;
-        }
         e.Handled = true;
+        e.DragUIOverride.IsCaptionVisible = false;
+        e.DragUIOverride.IsGlyphVisible = false;
+        e.DragUIOverride.IsContentVisible = false;
+        if (_closed || _fileOperationBusy || destination is null || !HasDragFiles(e))
+        {
+            e.AcceptedOperation = DataPackageOperation.None;
+            if (!_closed) HideDragHint();
+            return;
+        }
+        var pathsTask = _dragSourcePathsTask ??= ReadDragPathsAsync(e);
+        // Reuse the payload while hovering. The hint's timer handles modifier
+        // changes even when WinUI does not raise another DragOver.
+        if (pathsTask.IsCompletedSuccessfully)
+        {
+            try { UpdateDragFeedback(e, pathsTask.Result, destination); }
+            catch (Exception ex) { e.AcceptedOperation = DataPackageOperation.None; HideDragHint(); TraceDrag("Over failed: " + ex); }
+            return;
+        }
+        e.AcceptedOperation = DataPackageOperation.None;
+        HideDragHint();
+        var deferral = e.GetDeferral();
+        try
+        {
+            var paths = await pathsTask;
+            if (feedbackVersion == _dragFeedbackVersion) UpdateDragFeedback(e, paths, destination);
+        }
+        catch (Exception ex)
+        {
+            e.AcceptedOperation = DataPackageOperation.None;
+            if (feedbackVersion == _dragFeedbackVersion && !_closed) HideDragHint();
+            TraceDrag("Over failed: " + ex);
+        }
+        finally { deferral.Complete(); }
+    }
+    private void UpdateDragFeedback(DragEventArgs e, IReadOnlyList<string> paths, string destination)
+    {
+        if (_closed || _fileOperationBusy || paths.Count == 0)
+        {
+            e.AcceptedOperation = DataPackageOperation.None;
+            if (!_closed) HideDragHint();
+            return;
+        }
+        e.AcceptedOperation = BeginDragHint(e, paths, destination);
+        TraceDrag($"Over source={e.OriginalSource?.GetType().Name} destination={destination} modifiers={e.Modifiers} allowed={e.AllowedOperations} requested={e.DataView.RequestedOperation} accepted={e.AcceptedOperation} busy={_fileOperationBusy}");
     }
     private static bool HasDragFiles(DragEventArgs e) => e.DataView.Contains("Lilium.FilePaths") || e.DataView.Contains(StandardDataFormats.StorageItems);
 
@@ -339,17 +398,19 @@ public sealed partial class MainWindow
     private static async Task<IReadOnlyList<IStorageItem>> ReadDragFilesAsync(DragEventArgs e)
     {
         if (!e.DataView.Contains("Lilium.FilePaths")) return await e.DataView.GetStorageItemsAsync();
-        var json = await e.DataView.GetDataAsync("Lilium.FilePaths") as string;
-        var paths = JsonSerializer.Deserialize<string[]>(json ?? "[]") ?? [];
+        var paths = await ReadDragPathsAsync(e);
         var items = new List<IStorageItem>();
         foreach (var path in paths)
             items.Add(Directory.Exists(path) ? await StorageFolder.GetFolderFromPathAsync(path) : await StorageFile.GetFileFromPathAsync(path));
         return items;
     }
-    private static DataPackageOperation DragOperation(DragEventArgs e) =>
-        (e.Modifiers & Windows.ApplicationModel.DataTransfer.DragDrop.DragDropModifiers.Control) != 0
-            ? DataPackageOperation.Copy : DataPackageOperation.Move;
-
+    private static async Task<IReadOnlyList<string>> ReadDragPathsAsync(DragEventArgs e)
+    {
+        if (!e.DataView.Contains("Lilium.FilePaths"))
+            return (await e.DataView.GetStorageItemsAsync()).Select(item => item.Path).ToArray();
+        var json = await e.DataView.GetDataAsync("Lilium.FilePaths") as string;
+        return JsonSerializer.Deserialize<string[]>(json ?? "[]") ?? [];
+    }
     private string? FolderAt(object source)
     {
         for (var element = source as DependencyObject; element is not null; element = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(element))
@@ -392,12 +453,21 @@ public sealed partial class MainWindow
     }
     private async void Files_Drop(object sender, DragEventArgs e)
     {
+        // Use the drop event's release-time state, not keys released afterwards
+        // while file access is pending.
+        bool control = (e.Modifiers & Windows.ApplicationModel.DataTransfer.DragDrop.DragDropModifiers.Control) != 0;
+        bool shift = (e.Modifiers & Windows.ApplicationModel.DataTransfer.DragDrop.DragDropModifiers.Shift) != 0;
+        bool alwaysMove = AppServices.DragAlwaysMove;
+        ++_dragFeedbackVersion;
+        HideDragHint();
         var destination = FolderAt(sender) ?? DropDestination(e);
-        TraceDrag($"Drop destination={destination} operation={DragOperation(e)} busy={_fileOperationBusy}");
-        if (_fileOperationBusy || destination is null || !HasDragFiles(e)) return;
-        var operation = DragOperation(e) & e.AllowedOperations;
-        if (operation == DataPackageOperation.None) return;
-        e.AcceptedOperation = operation;
+        TraceDrag($"Drop destination={destination} modifiers={e.Modifiers} busy={_fileOperationBusy}");
+        if (_fileOperationBusy || destination is null || !HasDragFiles(e))
+        {
+            e.AcceptedOperation = DataPackageOperation.None;
+            e.Handled = true;
+            return;
+        }
         e.Handled = true;
         var deferral = e.GetDeferral();
         bool dropReleased = false;
@@ -405,6 +475,15 @@ public sealed partial class MainWindow
         {
             _fileOperationBusy = true;
             var sources = await ReadDragFilesAsync(e);
+            var operation = sources.Count == 0 ? DataPackageOperation.None :
+                (FileDropPolicy.ShouldMove(sources.Select(source => source.Path).ToArray(), destination,
+                    control, shift, alwaysMove) ? DataPackageOperation.Move : DataPackageOperation.Copy) & e.AllowedOperations;
+            TraceDrag($"Drop operation={operation} sourceCount={sources.Count} destination={destination}");
+            if (operation == DataPackageOperation.None)
+            {
+                e.AcceptedOperation = DataPackageOperation.None;
+                return;
+            }
             // Snapshot the payload and end the native drag before showing modal UI.
             // We perform the entire transfer ourselves: the drag source must not delete anything.
             e.AcceptedOperation = DataPackageOperation.None;
@@ -431,6 +510,7 @@ public sealed partial class MainWindow
         }
         finally
         {
+            _dragSourcePathsTask = null;
             if (!dropReleased) deferral.Complete();
             try { await RefreshAfterFileOperationAsync(); }
             catch (Exception ex) { await ShowMessageAsync(L10n.Get("MainWindow_Explorer_017"), ex.Message); }
