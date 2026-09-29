@@ -232,7 +232,6 @@ public sealed partial class MainWindow
             (VirtualKey.Z, KeyModifiers.Control) when !editing => "undo",
             (VirtualKey.A, KeyModifiers.Control) when !editing => "selectall",
             (VirtualKey.V, KeyModifiers.Control) when !editing => "paste",
-            (VirtualKey.Escape, KeyModifiers.None) when !editing => "deselect",
             _ => null
         };
         if (command is null) return false;

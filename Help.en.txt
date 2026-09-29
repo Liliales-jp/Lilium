@@ -10,7 +10,7 @@ Password-protected ZIP and CBZ files are not supported. RAR and 7z are not suppo
 Enter / Space: Open the selected item (when exactly one item is selected)
 Backspace / Mouse Back: Back in folder history
 Mouse Forward: Forward in folder history
-Go up one folder: Unassigned by default (the toolbar button remains available)
+Esc: Go up one folder
 Ctrl+C / Ctrl+X / Ctrl+V: Copy / Cut / Paste
 If exactly one folder is selected, Ctrl+V pastes into it; otherwise, it pastes into the current location.
 Even when the folder tree has focus, Ctrl+V uses the selection in the list on the right.
@@ -19,7 +19,7 @@ F2: Rename
 Del: Move to Recycle Bin
 Ctrl+Shift+N: New folder
 Ctrl+Z: Undo the most recent file operation (operations with overwriting cannot be undone)
-Ctrl+A / Esc: Select all / Clear selection
+Ctrl+A: Select all
 F5: Refresh
 0–5: Change the selected item's rating (rating information is added to its name)
 Ctrl / Shift + click: Select multiple items
@@ -35,9 +35,9 @@ Binding changes are saved and also applied to the library window that opened thi
 Right-to-left: Left-click for the next page, right-click for the previous page
 Left-to-right: Right-click for the next page, left-click for the previous page
 Mouse wheel down / up: Next / Previous
-Mouse Back / Backspace: Close the reader
+Esc / Backspace / Mouse Back: Close the reader
 Left and right arrows / A and D: Turn pages according to the reading direction
-Down / Up arrow: One page forward / back
+Down arrow / S: One page forward; Up arrow / W: One page back
 Space: Next page
 1 / 2: Single-page / Two-page display
 

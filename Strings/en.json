@@ -93,7 +93,7 @@
   "MainWindow_FileOperations_008": "New folder  (Ctrl+Shift+N)",
   "MainWindow_FileOperations_009": "Undo  (Ctrl+Z)",
   "MainWindow_FileOperations_010": "Select all  (Ctrl+A)",
-  "MainWindow_FileOperations_011": "Clear selection  (Esc)",
+  "MainWindow_FileOperations_011": "Clear selection",
   "MainWindow_FileOperations_012": "Open in new window",
   "MainWindow_FileOperations_013": "Show in File Explorer",
   "MainWindow_FileOperations_014": "Clear cache",

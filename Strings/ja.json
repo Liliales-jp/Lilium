@@ -93,7 +93,7 @@
   "MainWindow_FileOperations_008": "新規フォルダー  (Ctrl+Shift+N)",
   "MainWindow_FileOperations_009": "取り消し  (Ctrl+Z)",
   "MainWindow_FileOperations_010": "すべて選択  (Ctrl+A)",
-  "MainWindow_FileOperations_011": "選択解除  (Esc)",
+  "MainWindow_FileOperations_011": "選択解除",
   "MainWindow_FileOperations_012": "別ウィンドウで開く",
   "MainWindow_FileOperations_013": "エクスプローラーで表示",
   "MainWindow_FileOperations_014": "キャッシュのクリア",

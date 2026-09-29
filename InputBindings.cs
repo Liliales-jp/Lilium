@@ -26,14 +26,14 @@ internal static class BindingRules
         var result = Actions.ToDictionary(a => a.Id, _ => new List<InputGesture>());
         void Keys(string id, params int[] keys) => result[id].AddRange(keys.Select(k => new InputGesture(k)));
         void Mice(string id, params string[] mice) => result[id].AddRange(mice.Select(m => new InputGesture(Mouse: m)));
-        Keys("Open", 13, 32); Keys("Back", 8); Mice("Back", "Back"); Mice("Forward", "Forward");
+        Keys("Open", 13, 32); Keys("Back", 8); Mice("Back", "Back"); Mice("Forward", "Forward"); Keys("Up", 27);
         for (int i = 0; i <= 5; i++) Keys("Rating" + i, 48 + i);
-        Keys("CloseReader", 8); Mice("CloseReader", "Back");
+        Keys("CloseReader", 27, 8); Mice("CloseReader", "Back");
         Keys("NextRight", 37, 65, 32); Mice("NextRight", "Left", "WheelDown");
         Keys("PreviousRight", 39, 68); Mice("PreviousRight", "Right", "WheelUp");
         Keys("NextLeft", 39, 68, 32); Mice("NextLeft", "Right", "WheelDown");
         Keys("PreviousLeft", 37, 65); Mice("PreviousLeft", "Left", "WheelUp");
-        Keys("StepNext", 40); Keys("StepPrevious", 38); Keys("SinglePage", 49); Keys("TwoPages", 50);
+        Keys("StepNext", 40, 83); Keys("StepPrevious", 38, 87); Keys("SinglePage", 49); Keys("TwoPages", 50);
         return result;
     }
     internal static bool SupportedKey(int key) => key is >= 65 and <= 90 or >= 48 and <= 57
@@ -51,7 +51,7 @@ internal static class BindingRules
         if (Scope(action) != Library) return null;
         // Preserve focus/selection movement, including Ctrl/Shift selection gestures.
         if (g.Key is >= 33 and <= 40) return "Reserved";
-        if (m == 0 && g.Key is 27 or 46 or 113 or 116) return "Reserved";
+        if (m == 0 && g.Key is 46 or 113 or 116) return "Reserved";
         if (m == KeyModifiers.Control && g.Key is 65 or 67 or 86 or 88 or 90) return "Reserved";
         if (m == (KeyModifiers.Control | KeyModifiers.Shift) && g.Key == 78) return "Reserved";
         return null;
