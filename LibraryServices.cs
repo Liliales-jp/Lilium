@@ -216,7 +216,7 @@ public static class FileCatalog
     public static string RatingTarget(string path, bool isFolder, int rating)
     {
         var parent = Directory.GetParent(path)?.FullName ?? throw new IOException(L10n.Get("LibraryServices_002")); var extension = isFolder ? "" : Path.GetExtension(path); var stem = isFolder ? Path.GetFileName(path) : Path.GetFileNameWithoutExtension(path);
-        stem = RatingPattern.Replace(stem, ""); var target = Path.Combine(parent, rating == 0 ? stem + extension : $"{stem}{{zpi$r={rating}}}{extension}");
+        stem = RatingPattern.Replace(stem, "").TrimEnd(' '); var target = Path.Combine(parent, rating == 0 ? stem + extension : $"{stem} {{zpi$r={rating}}}{extension}");
         if (!string.Equals(path, target, StringComparison.OrdinalIgnoreCase) && (File.Exists(target) || Directory.Exists(target))) throw new IOException(L10n.Get("LibraryServices_003"));
         return target;
     }
