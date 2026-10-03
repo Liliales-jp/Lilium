@@ -25,6 +25,7 @@ public sealed partial class MainWindow : Window
         RootGrid.Language = L10n.Language;
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "Lilium.ico"));
         SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop();
+        WindowTitleBarTheme.Attach(this, RootGrid);
         InitializeWindowPlacement();
         QuickAccessList.ItemsSource = _quickAccess;
         ThumbnailGrid.ItemsSource = _items;

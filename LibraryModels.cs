@@ -37,7 +37,9 @@ public sealed class LibraryItem : INotifyPropertyChanged
     public Visibility FileIconVisibility => !IsFolder && !IsImage && !IsArchive && (!IsPdf || Thumbnail is null) ? Visibility.Visible : Visibility.Collapsed;
     public Visibility RatingVisibility => Rating > 0 ? Visibility.Visible : Visibility.Collapsed;
     public string RatingLabel => $"★ {Rating}";
-    public ImageSource? Thumbnail { get => _thumbnail; set { _thumbnail = value; OnPropertyChanged(); OnPropertyChanged(nameof(ImageVisibility)); OnPropertyChanged(nameof(FolderIconVisibility)); OnPropertyChanged(nameof(FileIconVisibility)); } }
+    public string TypeLabel => IsFolder ? "📁" : IsPdf ? "PDF" : IsArchive ? System.IO.Path.GetExtension(Path).TrimStart('.').ToUpperInvariant() : "";
+    public Visibility TypeLabelVisibility => Thumbnail is not null && TypeLabel.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+    public ImageSource? Thumbnail { get => _thumbnail; set { _thumbnail = value; OnPropertyChanged(); OnPropertyChanged(nameof(ImageVisibility)); OnPropertyChanged(nameof(FolderIconVisibility)); OnPropertyChanged(nameof(FileIconVisibility)); OnPropertyChanged(nameof(TypeLabelVisibility)); } }
     public Visibility ImageVisibility => Thumbnail is null ? Visibility.Collapsed : Visibility.Visible;
     public Visibility FolderIconVisibility => (IsFolder || IsArchive) && Thumbnail is null ? Visibility.Visible : Visibility.Collapsed;
     public event PropertyChangedEventHandler? PropertyChanged;

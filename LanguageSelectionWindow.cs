@@ -39,5 +39,6 @@ internal sealed class LanguageSelectionWindow : Window
             }
         };
         Content = new ScrollViewer { Content = panel };
+        WindowTitleBarTheme.Attach(this, (FrameworkElement)Content);
     }
 }

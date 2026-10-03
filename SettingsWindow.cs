@@ -77,6 +77,7 @@ internal sealed partial class SettingsWindow : Window
         Grid.SetColumn(scroll, 1);
         _root.Children.Add(scroll);
         Content = _root;
+        WindowTitleBarTheme.Attach(this, _root);
         _menu.SelectionChanged += (_, _) => ShowSection();
         _limit.ValueChanged += (_, _) => UpdateLimitLabel();
         _apply.Click += ApplyLimit;

@@ -80,11 +80,11 @@ public static class FileCatalog
             if (IsHiddenOrSystem(entry.Attributes)) continue;
             if (entry.IsFolder)
             {
-                items.Add(new LibraryItem { Path = entry.Path, DisplayName = entry.Name, IsFolder = true, Modified = entry.Modified, Rating = GetRating(entry.Name), ThumbnailSourcePath = FirstImage(entry.Path, cancellationToken) ?? "", CardWidth = width, CardHeight = height + 32 });
+                items.Add(new LibraryItem { Path = entry.Path, DisplayName = entry.Name, IsFolder = true, Modified = entry.Modified, Rating = GetRating(entry.Name), ThumbnailSourcePath = FolderCoverSource(entry.Path, cancellationToken), CardWidth = width, CardHeight = height + 32 });
             }
             else
             {
-                items.Add(new LibraryItem { Path = entry.Path, DisplayName = entry.Name, IsFolder = false, Modified = entry.Modified, Rating = GetRating(entry.Name), ThumbnailSourcePath = ArchiveLocation.IsArchiveFile(entry.Path) ? ArchiveLocation.Cover(entry.Path) : ImageExtensions.Contains(Path.GetExtension(entry.Path)) || PdfSession.IsPdfFile(entry.Path) ? entry.Path : "", CardWidth = width, CardHeight = height + 32 });
+                items.Add(new LibraryItem { Path = entry.Path, DisplayName = entry.Name, IsFolder = false, Modified = entry.Modified, Rating = GetRating(entry.Name), ThumbnailSourcePath = ThumbnailSource(entry.Path), CardWidth = width, CardHeight = height + 32 });
             }
         }
         return new LibraryFolderReadResult(items, result.Status, result.Error);
@@ -220,21 +220,16 @@ public static class FileCatalog
         if (!string.Equals(path, target, StringComparison.OrdinalIgnoreCase) && (File.Exists(target) || Directory.Exists(target))) throw new IOException(L10n.Get("LibraryServices_003"));
         return target;
     }
-    private static string? FirstImage(string folder, CancellationToken cancellationToken)
+    private static bool IsThumbnailFile(string path) => ImageExtensions.Contains(Path.GetExtension(path)) ||
+        ArchiveLocation.IsArchiveFile(path) || PdfSession.IsPdfFile(path);
+
+    private static string ThumbnailSource(string path) => ArchiveLocation.IsArchiveFile(path)
+        ? ArchiveLocation.Cover(path) : IsThumbnailFile(path) ? path : "";
+
+    private static string FolderCoverSource(string folder, CancellationToken cancellationToken)
     {
-        try
-        {
-            var images = new List<string>();
-            foreach (var file in Directory.EnumerateFiles(folder))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (ImageExtensions.Contains(Path.GetExtension(file))) images.Add(file);
-            }
-            images.Sort(new CancellationComparer<string>(NaturalComparer.Instance, cancellationToken));
-            return images.FirstOrDefault();
-        }
-        catch (OperationCanceledException) { throw; }
-        catch { return null; }
+        var file = FolderCoverSearch.FindFirstFile(folder, IsThumbnailFile, cancellationToken);
+        return file is null ? "" : ThumbnailSource(file);
     }
 
     private sealed class CancellationComparer<T>(IComparer<T> inner, CancellationToken cancellationToken) : IComparer<T>

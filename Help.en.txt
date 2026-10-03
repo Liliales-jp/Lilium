@@ -3,6 +3,7 @@ Lilium Help
 The keys and mouse actions below are defaults. Edit supported commands under Settings > Keyboard and select Apply to update all windows immediately. Check that page for your current bindings. Draft changes are inactive until applied.
 
 Library
+Normal folder covers use images, ZIP/CBZ covers, or PDF first pages. Search checks the folder itself, then children, then grandchildren. Folders at each depth and files within each folder use natural name order. Search is limited to 256 folders and excludes hidden/system items and links.
 Open a PDF to read its pages in the reader. The first page is used as its cover thumbnail. PDFs requiring an opening password, PDFs inside ZIP/CBZ archives, and a PDF page overview are not supported.
 Open a ZIP or CBZ to browse its images, folders, and other files. Files that are not supported images are shown but cannot be opened. Use Up, Back, and Forward as you would in a normal folder.
 Archive contents are read-only. Copy, move, delete, rating, Undo, and Quick Access do not apply to entries inside an archive. The archive file itself can be managed as a normal file.

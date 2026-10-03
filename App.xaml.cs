@@ -124,6 +124,7 @@ public partial class App : Application
             IsTextSelectionEnabled = true
         });
         window.Content = new ScrollViewer { Content = panel };
+        WindowTitleBarTheme.Attach(window, (FrameworkElement)window.Content);
         window.AppWindow.Resize(new Windows.Graphics.SizeInt32(680, 360));
         return window;
     }

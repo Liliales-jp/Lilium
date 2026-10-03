@@ -84,6 +84,9 @@
                         <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="6" Padding="5,2" CornerRadius="4" Background="#CC202020" Visibility="{x:Bind RatingVisibility}" IsHitTestVisible="False">
                             <TextBlock Text="{x:Bind RatingLabel}" Foreground="#FFFFD166" FontSize="12" />
                         </Border>
+                        <Border HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6,0,6,38" Padding="5,2" CornerRadius="4" Background="#CC202020" Visibility="{x:Bind TypeLabelVisibility, Mode=OneWay}" IsHitTestVisible="False">
+                            <TextBlock Text="{x:Bind TypeLabel}" Foreground="White" FontSize="12" IsColorFontEnabled="False" />
+                        </Border>
                         <TextBlock Text="{x:Bind DisplayName}" VerticalAlignment="Bottom" Margin="8,0,8,4" TextTrimming="CharacterEllipsis" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                     </Grid>
                 </DataTemplate></GridView.ItemTemplate>
