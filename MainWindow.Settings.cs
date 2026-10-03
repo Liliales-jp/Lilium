@@ -19,6 +19,7 @@ public sealed partial class MainWindow
         {
             _savedBinding = binding;
             SelectCombo(BindingBox, binding);
+            _previewReader.ApplyBinding(binding);
         }
         finally { _initializing = wasInitializing; }
     }

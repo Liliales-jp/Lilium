@@ -35,6 +35,7 @@ public sealed partial class MainWindow : Window
         RootGrid.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(GlobalPointerPressed), true);
         InitializeExplorer();
         InitializeThumbnails();
+        InitializePreview();
         AppServices.Store.QuickAccessChanged += Store_QuickAccessChanged;
         ((App)Application.Current).RegisterLibraryWindow(this);
     }
@@ -53,6 +54,7 @@ public sealed partial class MainWindow : Window
             _savedThumbnailSize = ReadChoiceSetting("thumbnail_size", "M", "S", "M", "L");
             _savedFolderSort = ReadChoiceSetting("sort", "name", "name", "modified");
             _savedFileSort = ReadChoiceSetting("file_sort", "name", "name", "modified");
+            RestorePreviewSettings();
             SelectCombo(BindingBox, _savedBinding);
             SelectCombo(ThumbnailSizeBox, _savedThumbnailSize);
             SelectCombo(SortBox, _savedFolderSort);
@@ -265,6 +267,7 @@ public sealed partial class MainWindow : Window
         var selectedPaths = ThumbnailGrid.SelectedItems.OfType<LibraryItem>().Select(i => i.Path).ToHashSet(StringComparer.OrdinalIgnoreCase);
         StopThumbnails();
         CancelNavigationFocus();
+        PreparePreviewRefresh();
         ArchiveLocation.TryParse(folder, out var currentArchive);
         CurrentFolderText.Text = currentArchive?.DisplayPath ?? folder;
         CurrentFolderText.IsEnabled = currentArchive is null;
@@ -450,6 +453,8 @@ public sealed partial class MainWindow : Window
     {
         CancelNavigationFocus();
         if (e.Handled || _fileOperationBusy || _dialogDepth > 0 || _closed) return;
+        // The preview receives its own keyboard input; library commands keep their original surface.
+        if (IsPreviewElement(FocusManager.GetFocusedElement(RootGrid.XamlRoot))) return;
         if (await ExplorerKeyAsync(e)) return;
         var focus = FocusManager.GetFocusedElement(RootGrid.XamlRoot);
         if (InputRouting.IsControl(focus)) return;
@@ -510,6 +515,7 @@ public sealed partial class MainWindow : Window
     private async void GlobalPointerPressed(object sender, PointerRoutedEventArgs e)
     {
         CancelNavigationFocus();
+        if (IsPreviewElement(e.OriginalSource)) return;
         if (_fileOperationBusy || _dialogDepth > 0 || _closed || InputRouting.Modifiers != 0 || InputRouting.IsControl(e.OriginalSource)) return;
         var mouse = InputRouting.Mouse(e, RootGrid);
         if (mouse is null) return;
@@ -556,26 +562,40 @@ public sealed partial class MainWindow : Window
         var folder = _currentFolder;
         if (folder is null || ArchiveLocation.IsVirtual(folder)) return;
 
-        // The first navigation can finish before TreeView has laid out its nodes.
-        // Repeat the expansion after layout, then reveal the selected folder.
-        DispatcherQueue.TryEnqueue(() =>
+        // Wait for the tree's first layout before expanding the restored path.
+        // A queued callback alone can still run before its flattened list is ready.
+        AfterTreeLayout(() =>
         {
             if (_closed || !string.Equals(_currentFolder, folder, StringComparison.OrdinalIgnoreCase)) return;
-            FolderTree.UpdateLayout();
             SyncTree(folder);
-            FolderTree.UpdateLayout();
             if (FolderTree.SelectedNode is not { Content: FolderNode selected } node ||
                 !string.Equals(selected.Path.TrimEnd('\\'), folder.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)) return;
 
-            // TreeView virtualizes off-screen nodes, so first ask its flattened list
-            // to realize the item when ContainerFromNode cannot find it yet.
-            if (FolderTree.ContainerFromNode(node) is not UIElement)
+            // Expansion updates the flattened list during layout. Scroll only a
+            // current list item, and let ScrollIntoView realize its container.
+            AfterTreeLayout(() =>
             {
-                FindTreeViewList(FolderTree)?.ScrollIntoView(node);
-                FolderTree.UpdateLayout();
-            }
-            (FolderTree.ContainerFromNode(node) as UIElement)?.StartBringIntoView();
+                if (_closed || !string.Equals(_currentFolder, folder, StringComparison.OrdinalIgnoreCase) ||
+                    FindTreeViewList(FolderTree) is not { IsLoaded: true } list) return;
+                int index = list.Items.IndexOf(node);
+                if (index >= 0) list.ScrollIntoView(list.Items[index]);
+            });
         });
+    }
+
+    private void AfterTreeLayout(Action action)
+    {
+        EventHandler<object>? handler = null;
+        handler = (_, _) =>
+        {
+            FolderTree.LayoutUpdated -= handler;
+            if (!_closed) DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+            {
+                if (!_closed) action();
+            });
+        };
+        FolderTree.LayoutUpdated += handler;
+        FolderTree.InvalidateArrange();
     }
 
     private static TreeViewList? FindTreeViewList(DependencyObject parent)

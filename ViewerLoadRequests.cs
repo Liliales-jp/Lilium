@@ -36,6 +36,11 @@ internal sealed class ViewerLoadRequests
     internal void Close()
     {
         _closed = true;
+        Cancel();
+    }
+
+    internal void Cancel()
+    {
         _latest?.Cancel();
         _latest = null;
     }

@@ -60,3 +60,13 @@ The size limit is 500 MB–5 GB. When exceeded, the least recently used cache is
 Clear cache on a folder regenerates images directly inside that folder.
 Original images, ratings, and settings are not deleted. Images in subfolders are not included.
 The current list is refreshed and regenerated; other locations regenerate when opened next.
+
+Preview pane
+Use Preview to the right of Recent, separated by a vertical divider, to open or collapse the pane. It shares the thumbnail area's height; drag its border to resize it.
+Exactly one selected item is previewed. Clearing selection or selecting multiple items leaves the pane blank.
+Folders and ZIP/CBZ files show their direct images. An image starts at the selected page, and a PDF starts at its first page.
+The bottom controls turn pages, change single/two-page display and binding direction, and open fullscreen at the current page with the current binding direction. Fullscreen uses its own saved page mode, just as when opening a file by double-clicking.
+Clicks and the mouse wheel turn pages within the reading surface. Controls and border dragging do not also turn pages.
+Nonconflicting reader shortcuts work only when the reading surface has keyboard focus. A/D/W/S are available with default bindings.
+Conflicting keys such as arrows, Enter, Space and 1/2, and all reader-close commands, are disabled in preview. Mouse Back also does not navigate folder history within the pane.
+Collapse with the header's x or the Preview toggle. Visibility and width are saved. The preview's page mode is saved separately from fullscreen.

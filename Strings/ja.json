@@ -385,5 +385,17 @@
   "Pdf_PageError": "PDFのページを表示できませんでした",
   "Pdf_Password": "パスワード付きPDFファイルには対応していません",
   "Pdf_Empty": "PDFに表示できるページがありません。",
-  "Pdf_InvalidPage": "PDFのページサイズが不正です。"
+  "Pdf_InvalidPage": "PDFのページサイズが不正です。",
+  "Preview_CloseDisabled": "プレビューでは無効：閲覧ビューを閉じる操作",
+  "Preview_Collapse": "プレビューを畳む",
+  "Preview_ConflictingKey": "プレビューでは無効：一覧の割り当てと競合",
+  "Preview_EmptyFolder": "直下に表示できる画像がありません。",
+  "Preview_Fullscreen": "全画面で開く",
+  "Preview_LeftBinding": "左とじ",
+  "Preview_OpenError": "プレビューを表示できませんでした",
+  "Preview_ReservedKey": "プレビューでは無効：一覧の標準操作に使用",
+  "Preview_RightBinding": "右とじ",
+  "Preview_Unsupported": "プレビューに対応していません。",
+  "Ui_Preview_Resize": "プレビューの幅を変更",
+  "Ui_Preview_Toggle": "プレビュー"
 }

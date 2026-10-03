@@ -23,7 +23,9 @@
             <Grid Grid.Row="2" RowSpacing="8" Padding="0,12,0,0" BorderThickness="0,1,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
                 <TextBlock Text="PC" Style="{StaticResource SubtitleTextBlockStyle}" />
                 <TreeView x:Name="FolderTree" Grid.Row="1" SelectionMode="Single" CanDragItems="False" CanReorderItems="False" AllowDrop="True" RightTapped="Tree_RightTapped" Expanding="FolderTree_Expanding" SelectionChanged="FolderTree_SelectedItemChanged">
-                    <TreeView.ItemTemplate><DataTemplate><TreeViewItem IsExpanded="{Binding IsExpanded, Mode=TwoWay}" AllowDrop="True" DragEnter="Files_DragOver" DragOver="Files_DragOver" Drop="Files_Drop" Content="{Binding Content.Name}" /></DataTemplate></TreeView.ItemTemplate>
+                    <!-- RootNodes mode synchronizes expansion with TreeViewNode itself.
+                         A two-way IsExpanded binding can mutate nodes while rows recycle. -->
+                    <TreeView.ItemTemplate><DataTemplate><TreeViewItem AllowDrop="True" DragEnter="Files_DragOver" DragOver="Files_DragOver" Drop="Files_Drop" Content="{Binding Content.Name}" /></DataTemplate></TreeView.ItemTemplate>
                 </TreeView>
             </Grid>
         </Grid>
@@ -31,13 +33,15 @@
         <Grid Grid.Column="2" Padding="16" RowSpacing="12">
             <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
             <StackPanel Spacing="6">
-            <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <Button x:Name="BackButton" Width="56" Height="32" Click="HistoryBack_Click" ToolTipService.ToolTip="{StaticResource Ui_MainWindow_004}" AutomationProperties.Name="{StaticResource Ui_MainWindow_005}"><FontIcon Glyph="&#xE72B;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="12" /></Button>
                 <Button x:Name="ForwardButton" Width="56" Height="32" Grid.Column="1" Click="HistoryForward_Click" ToolTipService.ToolTip="{StaticResource Ui_MainWindow_006}" AutomationProperties.Name="{StaticResource Ui_MainWindow_007}"><FontIcon Glyph="&#xE72A;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="12" /></Button>
                 <Button Width="56" Height="32" Grid.Column="2" ToolTipService.ToolTip="{StaticResource Ui_MainWindow_008}" AutomationProperties.Name="{StaticResource Ui_MainWindow_009}" Click="Up_Click"><FontIcon Glyph="&#xE74A;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="12" /></Button>
                 <AutoSuggestBox x:Name="CurrentFolderText" Grid.Column="3" PlaceholderText="{StaticResource Ui_MainWindow_010}" TextChanged="Address_TextChanged" QuerySubmitted="Address_Submitted" />
                 <Button Width="56" Height="32" Grid.Column="4" ToolTipService.ToolTip="{StaticResource Ui_MainWindow_011}" AutomationProperties.Name="{StaticResource Ui_MainWindow_012}" Click="Refresh_Click"><FontIcon Glyph="&#xE72C;" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="12" /></Button>
                 <Button Grid.Column="5" Content="{StaticResource Ui_MainWindow_013}" Click="Recent_Click" />
+                <Border Grid.Column="6" Width="1" Height="24" Margin="4,0" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                <ToggleButton x:Name="PreviewToggle" Grid.Column="7" Content="{StaticResource Ui_Preview_Toggle}" Click="PreviewToggle_Click" />
             </Grid>
             </StackPanel>
             <ScrollViewer x:Name="FilterScroll" Grid.Row="1" HorizontalContentAlignment="Stretch" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled">
@@ -53,7 +57,9 @@
                 <Button Grid.Column="9" VerticalAlignment="Bottom" Content="{StaticResource Ui_MainWindow_042}" Click="ClearSearch_Click" />
             </Grid>
             </ScrollViewer>
-            <GridView x:Name="ThumbnailGrid" Grid.Row="2" CanDragItems="True" CanReorderItems="False" AllowDrop="True" ContainerContentChanging="ThumbnailContainer_Changing" DragOver="Files_DragOver" Drop="Files_Drop" SelectionMode="Extended" RightTapped="Files_RightTapped">
+            <Grid x:Name="PreviewLayout" Grid.Row="2">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition x:Name="PreviewDividerColumn" Width="0" /><ColumnDefinition x:Name="PreviewColumn" Width="0" /></Grid.ColumnDefinitions>
+            <GridView x:Name="ThumbnailGrid" CanDragItems="True" CanReorderItems="False" AllowDrop="True" ContainerContentChanging="ThumbnailContainer_Changing" DragOver="Files_DragOver" Drop="Files_Drop" SelectionMode="Extended" RightTapped="Files_RightTapped">
                 <GridView.Resources>
                     <ResourceDictionary>
                         <ResourceDictionary.ThemeDictionaries>
@@ -91,6 +97,9 @@
                     </Grid>
                 </DataTemplate></GridView.ItemTemplate>
             </GridView>
+                <local:PreviewDivider x:Name="PreviewSplitter" Grid.Column="1" Visibility="Collapsed" AutomationProperties.Name="{StaticResource Ui_Preview_Resize}" PointerPressed="PreviewSplitter_PointerPressed" PointerMoved="PreviewSplitter_PointerMoved" PointerReleased="PreviewSplitter_PointerReleased" PointerCaptureLost="PreviewSplitter_PointerCaptureLost" KeyDown="PreviewSplitter_KeyDown" />
+                <Border x:Name="PreviewHost" Grid.Column="2" Background="Black" Visibility="Collapsed" />
+            </Grid>
         </Grid>
         <Canvas Grid.ColumnSpan="3" Canvas.ZIndex="2000" IsHitTestVisible="False">
             <Border x:Name="DragOperationHint" Visibility="Collapsed" MaxWidth="320" Padding="8,5" CornerRadius="5"

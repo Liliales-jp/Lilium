@@ -385,6 +385,12 @@ public sealed partial class MainWindow
 
     private string? DropDestination(DragEventArgs e)
     {
+        if (_previewOpen)
+        {
+            var point = e.GetPosition(PreviewHost);
+            if (point.X >= -PreviewRules.DividerWidth && point.Y >= 0 &&
+                point.X < PreviewHost.ActualWidth && point.Y < PreviewHost.ActualHeight) return null;
+        }
         // OriginalSource can be the GridView's drag overlay, not the card below the pointer.
         var hits = Microsoft.UI.Xaml.Media.VisualTreeHelper.FindElementsInHostCoordinates(e.GetPosition(RootGrid), RootGrid).ToArray();
         foreach (var hit in hits)

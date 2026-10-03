@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../InputBindings.cs" Link="InputBindings.cs" />
+    <Compile Include="../../PreviewRules.cs" Link="PreviewRules.cs" />
+    <Compile Include="../../ViewerLoadRequests.cs" Link="ViewerLoadRequests.cs" />
+    <Compile Include="../../ViewerPagePlanner.cs" Link="ViewerPagePlanner.cs" />
+  </ItemGroup>
+</Project>

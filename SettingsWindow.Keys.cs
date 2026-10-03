@@ -103,6 +103,9 @@ internal sealed partial class SettingsWindow
                     values.Children.Add(Text(error.Reason == "Conflict"
                         ? L10n.Format("Keys_Conflict", L10n.Get("Keys_Action_" + error.Other))
                         : L10n.Get("Keys_" + error.Reason)));
+                if (action.Scopes != BindingRules.Library &&
+                    PreviewRules.DisabledInputReason(action.Id, binding, _keyDraft) is { } previewReason)
+                    values.Children.Add(Text(L10n.Get(previewReason)));
             }
             var buttons = new StackPanel { Spacing = 8 };
             var addKey = new Button { Content = L10n.Get("Keys_AddKey"), HorizontalAlignment = HorizontalAlignment.Stretch };

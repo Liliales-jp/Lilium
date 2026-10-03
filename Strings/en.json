@@ -385,5 +385,17 @@
   "Pdf_PageError": "Could not display the PDF page",
   "Pdf_Password": "Password-protected PDF files are not supported.",
   "Pdf_Empty": "The PDF contains no pages to display.",
-  "Pdf_InvalidPage": "The PDF page size is invalid."
+  "Pdf_InvalidPage": "The PDF page size is invalid.",
+  "Preview_CloseDisabled": "Disabled in preview: closing the reader",
+  "Preview_Collapse": "Collapse preview",
+  "Preview_ConflictingKey": "Disabled in preview: conflicts with a library binding",
+  "Preview_EmptyFolder": "No supported images directly in this folder.",
+  "Preview_Fullscreen": "Open fullscreen",
+  "Preview_LeftBinding": "L→R",
+  "Preview_OpenError": "Could not display preview",
+  "Preview_ReservedKey": "Disabled in preview: reserved for library controls",
+  "Preview_RightBinding": "R→L",
+  "Preview_Unsupported": "Preview is not supported for this file.",
+  "Ui_Preview_Resize": "Resize preview",
+  "Ui_Preview_Toggle": "Preview"
 }
