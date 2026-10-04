@@ -67,6 +67,7 @@ Exactly one selected item is previewed. Clearing selection or selecting multiple
 Folders and ZIP/CBZ files show their direct images. An image starts at the selected page, and a PDF starts at its first page.
 The bottom controls turn pages, change single/two-page display and binding direction, and open fullscreen at the current page with the current binding direction. Fullscreen uses its own saved page mode, just as when opening a file by double-clicking.
 Clicks and the mouse wheel turn pages within the reading surface. Controls and border dragging do not also turn pages.
-Nonconflicting reader shortcuts work only when the reading surface has keyboard focus. A/D/W/S are available with default bindings.
-Conflicting keys such as arrows, Enter, Space and 1/2, and all reader-close commands, are disabled in preview. Mouse Back also does not navigate folder history within the pane.
+Library shortcuts and nonconflicting reader shortcuts work with focus in either the thumbnail list or the preview reading surface. A/D/W/S control the preview with default bindings.
+Arrows, Enter, Space and 1/2 give priority to library actions. Up/Down move between thumbnails even from the preview; Shift/Ctrl selection gestures also work. Text inputs and buttons retain their standard keyboard behavior.
+All reader-close commands are disabled in preview. Mouse Back also does not navigate folder history within the pane.
 Collapse with the header's x or the Preview toggle. Visibility and width are saved. The preview's page mode is saved separately from fullscreen.

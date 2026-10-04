@@ -150,15 +150,15 @@ public sealed partial class MainWindow
     private void QueueRefresh(FileSystemWatcher watcher) => DispatcherQueue.TryEnqueue(() =>
     { if (!_closed && ReferenceEquals(watcher, _watcher)) { _watchTimer!.Stop(); _watchTimer.Start(); } });
 
-    private async Task RefreshAfterFileOperationAsync()
+    private async Task RefreshAfterFileOperationAsync(ThumbnailRefreshState? restore = null)
     {
         if (_closed || _currentFolder is null) return;
-        if (ArchiveLocation.IsVirtual(_currentFolder)) { await RefreshItemsAsync(); return; }
+        if (ArchiveLocation.IsVirtual(_currentFolder)) { await RefreshItemsAsync(restore: restore); return; }
         // The explicit scan includes changes made by this operation. Retire its
         // queued watcher callbacks before scanning, including dispatcher callbacks.
         // Re-arm first so genuinely new changes during/after the scan are not lost.
         if (_folderRequests.Pending is null) WatchFolder(_currentFolder);
-        await RefreshItemsAsync(refreshTree: true);
+        await RefreshItemsAsync(refreshTree: true, restore: restore);
     }
 
     private async void Address_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)

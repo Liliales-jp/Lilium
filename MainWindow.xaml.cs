@@ -184,10 +184,12 @@ public sealed partial class MainWindow : Window
     private Task<FolderLoadResult> OpenArchiveFolderAsync(string location) =>
         LoadFolderAsync(_folderRequests.Navigate(location, persistFolder: false));
 
-    private Task<FolderLoadResult> RefreshItemsAsync(bool automatic = false, bool refreshTree = false) =>
-        LoadFolderAsync(_folderRequests.Refresh(automatic), refreshTree);
+    private Task<FolderLoadResult> RefreshItemsAsync(bool automatic = false, bool refreshTree = false,
+        ThumbnailRefreshState? restore = null) =>
+        LoadFolderAsync(_folderRequests.Refresh(automatic), refreshTree, restore);
 
-    private async Task<FolderLoadResult> LoadFolderAsync(FolderRequests.Request? request, bool refreshTree = false)
+    private async Task<FolderLoadResult> LoadFolderAsync(FolderRequests.Request? request, bool refreshTree = false,
+        ThumbnailRefreshState? restore = null)
     {
         if (request is null) return new FolderLoadResult(null);
         try
@@ -264,13 +266,17 @@ public sealed partial class MainWindow : Window
         // No await between this guard and the entire UI/navigation commit.
         // Superseded requests cannot roll back history, resync the tree or show errors.
         if (!_folderRequests.TryCommit(request)) return new FolderLoadResult(request);
-        var selectedPaths = ThumbnailGrid.SelectedItems.OfType<LibraryItem>().Select(i => i.Path).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (request.Navigation) restore = null;
+        else if (restore is null || !string.Equals(restore.Folder, folder, StringComparison.OrdinalIgnoreCase))
+            restore = CaptureThumbnailRefreshState();
+        var selectedPaths = (restore?.SelectedPaths ?? []).ToHashSet(StringComparer.OrdinalIgnoreCase);
         StopThumbnails();
         CancelNavigationFocus();
         PreparePreviewRefresh();
         ArchiveLocation.TryParse(folder, out var currentArchive);
         CurrentFolderText.Text = currentArchive?.DisplayPath ?? folder;
         CurrentFolderText.IsEnabled = currentArchive is null;
+        ThumbnailGrid.ResetNavigationFocus();
         _items.Clear(); foreach (var item in visible) _items.Add(item);
         if (request.Navigation)
         {
@@ -285,7 +291,7 @@ public sealed partial class MainWindow : Window
         var target = visible.FirstOrDefault(i => string.Equals(i.Path, request.FocusPath, StringComparison.OrdinalIgnoreCase)) ?? visible.FirstOrDefault();
         QueueFolderSelection(request, request.Navigation
             ? target is null ? [] : [target]
-            : visible.Where(i => selectedPaths.Contains(i.Path)).ToArray());
+            : visible.Where(i => selectedPaths.Contains(i.Path)).ToArray(), restore);
         return new FolderLoadResult(request);
         }
         finally { request.Dispose(); }
@@ -405,10 +411,14 @@ public sealed partial class MainWindow : Window
         _fileOperationBusy = true;
         try
         {
+            var restore = CaptureThumbnailRefreshState(restoreGridFocus: true);
             var target = FileCatalog.RatingTarget(item.Path, item.IsFolder, rating);
             if (!string.Equals(target, item.Path, StringComparison.OrdinalIgnoreCase))
-                await RunRequestsAsync([new() { Kind = "Move", Source = item.Path, Target = target }]);
-            await RefreshAfterFileOperationAsync();
+            {
+                if (await RunRequestsAsync([new() { Kind = "Move", Source = item.Path, Target = target }]))
+                    restore = restore?.Renamed(item.Path, target, item.IsFolder);
+            }
+            await RefreshAfterFileOperationAsync(restore);
         }
         catch (Exception ex) { await ShowMessageAsync(L10n.Get("MainWindow_xaml_009"), ex.Message); }
         finally { _fileOperationBusy = false;  }
@@ -453,16 +463,24 @@ public sealed partial class MainWindow : Window
     {
         CancelNavigationFocus();
         if (e.Handled || _fileOperationBusy || _dialogDepth > 0 || _closed) return;
-        // The preview receives its own keyboard input; library commands keep their original surface.
-        if (IsPreviewElement(FocusManager.GetFocusedElement(RootGrid.XamlRoot))) return;
         if (await ExplorerKeyAsync(e)) return;
         var focus = FocusManager.GetFocusedElement(RootGrid.XamlRoot);
         if (InputRouting.IsControl(focus)) return;
         var gesture = InputRouting.Key(e);
+        bool inPreview = IsPreviewElement(focus);
+        if (ReferenceEquals(focus, PreviewSplitter)) return; // Arrow keys resize the divider.
         bool inGrid = false;
         for (var node = focus as DependencyObject; node is not null; node = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(node))
             if (node == ThumbnailGrid) { inGrid = true; break; }
-        if (inGrid)
+        bool inReadingArea = inGrid || inPreview;
+        if (inPreview && gesture.Key is >= 33 and <= 40 &&
+            (gesture.Modifiers & ~(KeyModifiers.Control | KeyModifiers.Shift)) == 0)
+        {
+            ThumbnailGrid.ForwardNavigationKey(e);
+            e.Handled = true;
+            return;
+        }
+        if (inReadingArea)
         {
             string? fixedCommand = (gesture.Key, gesture.Modifiers) switch
             {
@@ -472,9 +490,13 @@ public sealed partial class MainWindow : Window
             if (fixedCommand is not null) { e.Handled = true; await FileCommandAsync(fixedCommand); return; }
         }
         var action = AppServices.Inputs.Match(gesture, BindingRules.Library);
-        if (action is null || (action is not ("Back" or "Forward" or "Up") && !inGrid)) return;
-        e.Handled = true;
-        await RunLibraryInputAsync(action);
+        if (action is not null && (action is "Back" or "Forward" or "Up" || inReadingArea))
+        {
+            e.Handled = true;
+            await RunLibraryInputAsync(action);
+            return;
+        }
+        if (inReadingArea && _previewOpen) await _previewReader.HandleKeyAsync(e);
     }
 
     private async Task RunLibraryInputAsync(string action)

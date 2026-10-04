@@ -160,13 +160,20 @@ internal sealed partial class ReaderView : UserControl, IDisposable
 
     private async void ReaderKeyDown(object sender, KeyRoutedEventArgs e)
     {
-        if (e.Handled || !InputAvailable || InputRouting.IsControl(FocusManager.GetFocusedElement(XamlRoot))) return;
+        // The library window routes preview keys for both panes before bubbling.
+        if (!IsPreview) await HandleKeyAsync(e);
+    }
+
+    internal async Task<bool> HandleKeyAsync(KeyRoutedEventArgs e)
+    {
+        if (e.Handled || !InputAvailable || InputRouting.IsControl(FocusManager.GetFocusedElement(XamlRoot))) return false;
         var gesture = InputRouting.Key(e);
         var action = AppServices.Inputs.Match(gesture, InputScope);
-        if (action is null) return;
-        if (IsPreview && PreviewRules.DisabledInputReason(action, gesture, AppServices.Inputs.Snapshot()) is not null) return;
+        if (action is null) return false;
+        if (IsPreview && PreviewRules.DisabledInputReason(action, gesture, AppServices.Inputs.Snapshot()) is not null) return false;
         e.Handled = true;
         await RunReaderInputAsync(action);
+        return true;
     }
 
     private async Task RunReaderInputAsync(string action)

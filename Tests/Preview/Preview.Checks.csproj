@@ -10,5 +10,6 @@
     <Compile Include="../../PreviewRules.cs" Link="PreviewRules.cs" />
     <Compile Include="../../ViewerLoadRequests.cs" Link="ViewerLoadRequests.cs" />
     <Compile Include="../../ViewerPagePlanner.cs" Link="ViewerPagePlanner.cs" />
+    <Compile Include="../../ThumbnailNavigation.cs" Link="ThumbnailNavigation.cs" />
   </ItemGroup>
 </Project>

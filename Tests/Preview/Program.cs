@@ -59,4 +59,15 @@ Check(ViewerPagePlanner.PreviousIndex(5, 2, "two", Portrait) == 0, "Previous ret
 Check(ViewerPagePlanner.SpreadLength(5, 4, "two", Portrait) == 1, "Odd final pages stay visible");
 Check(ViewerPagePlanner.NextIndex(5, 4, "two", Portrait) == 4, "The last page does not loop or close");
 Check(ViewerPagePlanner.NextIndex(5, 0, "one", Portrait) == 1, "Single-page mode advances by one");
+Check(ThumbnailNavigation.Target(1, 6, 4, 3, 40, false) == 5, "Down keeps the thumbnail column");
+Check(ThumbnailNavigation.Target(5, 6, 4, 3, 38, false) == 1, "Up returns to the prior row");
+Check(ThumbnailNavigation.Target(3, 6, 4, 3, 40, false) == 5, "Incomplete final rows remain reachable");
+Check(ThumbnailNavigation.Target(0, 6, 4, 3, 38, false) == 0, "Navigation stops at the first item");
+Check(ThumbnailNavigation.Target(5, 6, 4, 3, 39, false) == 5, "Navigation stops at the last item");
+Check(ThumbnailNavigation.Target(1, 30, 4, 3, 34, false) == 13, "PageDown advances a viewport");
+Check(ThumbnailNavigation.Target(13, 30, 4, 3, 33, false) == 1, "PageUp returns a viewport");
+Check(ThumbnailNavigation.Target(10, 30, 4, 3, 36, false) == 0, "Home selects the first thumbnail");
+Check(ThumbnailNavigation.Target(10, 30, 4, 3, 35, false) == 29, "End selects the last thumbnail");
+Check(ThumbnailNavigation.Target(2, 6, 4, 3, 37, true) == 3, "RTL reverses horizontal navigation");
+Check(ThumbnailNavigation.Target(0, 0, 1, 1, 40, false) == -1, "Empty lists have no navigation target");
 Console.WriteLine($"Preview checks passed: {checks}");

@@ -59,7 +59,7 @@
             </ScrollViewer>
             <Grid x:Name="PreviewLayout" Grid.Row="2">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition x:Name="PreviewDividerColumn" Width="0" /><ColumnDefinition x:Name="PreviewColumn" Width="0" /></Grid.ColumnDefinitions>
-            <GridView x:Name="ThumbnailGrid" CanDragItems="True" CanReorderItems="False" AllowDrop="True" ContainerContentChanging="ThumbnailContainer_Changing" DragOver="Files_DragOver" Drop="Files_Drop" SelectionMode="Extended" RightTapped="Files_RightTapped">
+            <local:ThumbnailGridView x:Name="ThumbnailGrid" CanDragItems="True" CanReorderItems="False" AllowDrop="True" ContainerContentChanging="ThumbnailContainer_Changing" DragOver="Files_DragOver" Drop="Files_Drop" SelectionMode="Extended" RightTapped="Files_RightTapped">
                 <GridView.Resources>
                     <ResourceDictionary>
                         <ResourceDictionary.ThemeDictionaries>
@@ -96,7 +96,7 @@
                         <TextBlock Text="{x:Bind DisplayName}" VerticalAlignment="Bottom" Margin="8,0,8,4" TextTrimming="CharacterEllipsis" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                     </Grid>
                 </DataTemplate></GridView.ItemTemplate>
-            </GridView>
+            </local:ThumbnailGridView>
                 <local:PreviewDivider x:Name="PreviewSplitter" Grid.Column="1" Visibility="Collapsed" AutomationProperties.Name="{StaticResource Ui_Preview_Resize}" PointerPressed="PreviewSplitter_PointerPressed" PointerMoved="PreviewSplitter_PointerMoved" PointerReleased="PreviewSplitter_PointerReleased" PointerCaptureLost="PreviewSplitter_PointerCaptureLost" KeyDown="PreviewSplitter_KeyDown" />
                 <Border x:Name="PreviewHost" Grid.Column="2" Background="Black" Visibility="Collapsed" />
             </Grid>
