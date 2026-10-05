@@ -8,22 +8,23 @@
 - プレビューエリアでフォルダーを開かずに内容を閲覧
 - よく使うフォルダーはクイックアクセスに登録
 - フォルダーや圧縮ファイルも中の画像をサムネイルとして表示
-![image](https://github.com/Liliales-jp/Lilium/blob/main/images/image_01.png)
+
+![image](https://github.com/Liliales-jp/Lilium/blob/419cda0802191afa1ddc427436912c872973ab08/images/image_01.png)
 
 ### 没入感の高い閲覧ビュー
 - フルスクリーンで没入感のある閲覧ビュー
 - 自動見開き（縦長画像は二枚表示、横長画像は一枚表示）と一枚表示の切り替え
 - 右とじ（縦書き向け）と左とじ（横書き向け）の切り替え
 - 二枚表示時の見開きのズレを直す「一枚だけ送り」を搭載
-![image](https://github.com/Liliales-jp/Lilium/blob/main/images/image_02.png)
+![image](https://github.com/Liliales-jp/Lilium/blob/419cda0802191afa1ddc427436912c872973ab08/images/image_02.png)
 
 ### カスタマイズ
 - キー割り当てのカスタマイズ
 - キャッシュ管理（保持サイズ設定・全削除・フォルダーごとの削除）
 - 言語選択（Japanese / English）
-![image](https://github.com/Liliales-jp/Lilium/blob/main/images/image_03.png)
+![image](https://github.com/Liliales-jp/Lilium/blob/419cda0802191afa1ddc427436912c872973ab08/images/image_03.png)
 - ダークモード対応
-![image](https://github.com/Liliales-jp/Lilium/blob/main/images/image_01d.png)
+![image](https://github.com/Liliales-jp/Lilium/blob/419cda0802191afa1ddc427436912c872973ab08/images/image_01d.png)
 
 ### 安全性
 - ネットワーク接続なし・データ送信なし。完全オフライン
