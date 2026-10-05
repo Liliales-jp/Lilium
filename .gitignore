@@ -1,6 +1,7 @@
 # Build and IDE output
 [Bb]in/
 [Oo]bj/
+AppPackages/
 .vs/
 .nuget-packages/
 .nuget-appdata/
