@@ -1,3 +1,5 @@
+![image](https://github.com/user-attachments/assets/dc6c0e60-b591-445d-aa02-dccbd47ece44)
+
 **漫画や画像を見開きで閲覧できるコミックビューワーです。**
 **圧縮ファイルとPDFにも対応しています。**
 
@@ -8,21 +10,26 @@
 - プレビューエリアでフォルダーを開かずに内容を閲覧
 - よく使うフォルダーはクイックアクセスに登録
 - フォルダーや圧縮ファイルも中の画像をサムネイルとして表示
-![image](https://github.com/user-attachments/assets/dc6c0e60-b591-445d-aa02-dccbd47ece44)
+
+![image](https://github.com/user-attachments/assets/708ebbf9-a9d4-4e46-a129-196215660e26)
 
 ### 没入感の高い閲覧ビュー
 - フルスクリーンで没入感のある閲覧ビュー
 - 自動見開き（縦長画像は二枚表示、横長画像は一枚表示）と一枚表示の切り替え
 - 右とじ（縦書き向け）と左とじ（横書き向け）の切り替え
 - 二枚表示時の見開きのズレを直す「一枚だけ送り」を搭載
+
 ![image](https://github.com/user-attachments/assets/71ef1abe-b7ff-46cb-8c88-2939f1517b17)
 
 ### カスタマイズ
 - キー割り当てのカスタマイズ
 - キャッシュ管理（保持サイズ設定・全削除・フォルダーごとの削除）
 - 言語選択（Japanese / English）
-![image](https://github.com/user-attachments/assets/07bee532-74e7-41da-879a-72cc752d8c47)
+
+![image](https://github.com/user-attachments/assets/b8f01272-d216-4fb4-be01-75d5ace39fc7)
+
 - ダークモード対応
+
 ![image](https://github.com/user-attachments/assets/1a2af53e-ee0a-4e7b-a4cd-063a5bb1a22e)
 
 ### 安全性
