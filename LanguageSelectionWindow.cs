@@ -9,7 +9,7 @@ internal sealed class LanguageSelectionWindow : Window
     {
         Title = "Lilium — Language / 言語";
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "Lilium.ico"));
-        AppWindow.Resize(new Windows.Graphics.SizeInt32(600, 420));
+        WindowDpi.ResizeInDips(this, 600, 420);
         var panel = new StackPanel { Padding = new Thickness(28), Spacing = 20 };
         panel.Children.Add(new TextBlock { Text = L10n.Get("Language_Welcome"), FontSize = 24, TextWrapping = TextWrapping.Wrap });
         var choice = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };

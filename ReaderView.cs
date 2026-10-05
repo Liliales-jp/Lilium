@@ -23,6 +23,8 @@ internal sealed partial class ReaderView : UserControl, IDisposable
     };
     private readonly ViewerLoadRequests _loadRequests = new();
     private readonly Microsoft.UI.Dispatching.DispatcherQueueTimer _resizeTimer;
+    private XamlRoot? _observedXamlRoot;
+    private double _rasterizationScale;
     private ViewerSource? _source;
     private ReaderDocument? _document;
     private int _index;
@@ -81,8 +83,51 @@ internal sealed partial class ReaderView : UserControl, IDisposable
         _viewport.SizeChanged += (_, _) =>
         {
             LayoutPages();
-            if (_source is not null && !_closed) { _resizeTimer.Stop(); _resizeTimer.Start(); }
+            SchedulePageReload();
         };
+        Loaded += ReaderLoaded;
+        Unloaded += ReaderUnloaded;
+    }
+
+    private void ReaderLoaded(object sender, RoutedEventArgs args)
+    {
+        DetachXamlRoot();
+        _observedXamlRoot = XamlRoot;
+        if (_observedXamlRoot is not null)
+        {
+            _rasterizationScale = _observedXamlRoot.RasterizationScale;
+            _observedXamlRoot.Changed += XamlRootChanged;
+        }
+        SchedulePageReload();
+    }
+
+    private void ReaderUnloaded(object sender, RoutedEventArgs args)
+    {
+        DetachXamlRoot();
+        _resizeTimer.Stop();
+    }
+
+    private void XamlRootChanged(XamlRoot sender, XamlRootChangedEventArgs args)
+    {
+        double scale = sender.RasterizationScale;
+        if (_rasterizationScale == scale) return;
+        _rasterizationScale = scale;
+        // A DPI change can leave the viewport's DIP size unchanged, so
+        // SizeChanged alone does not refresh PDF renders or preview decodes.
+        SchedulePageReload();
+    }
+
+    private void SchedulePageReload()
+    {
+        if (_source is null || _closed) return;
+        _resizeTimer.Stop();
+        _resizeTimer.Start();
+    }
+
+    private void DetachXamlRoot()
+    {
+        if (_observedXamlRoot is not null) _observedXamlRoot.Changed -= XamlRootChanged;
+        _observedXamlRoot = null;
     }
 
     internal void Clear()
@@ -388,6 +433,9 @@ internal sealed partial class ReaderView : UserControl, IDisposable
         if (_closed) return;
         Clear();
         _closed = true;
+        DetachXamlRoot();
+        Loaded -= ReaderLoaded;
+        Unloaded -= ReaderUnloaded;
         _loadRequests.Close();
     }
 }

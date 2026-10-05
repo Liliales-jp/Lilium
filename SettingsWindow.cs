@@ -50,7 +50,7 @@ internal sealed partial class SettingsWindow : Window
     {
         Title = L10n.Get("SettingsWindow_002");
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "Lilium.ico"));
-        AppWindow.Resize(new Windows.Graphics.SizeInt32(1100, 750));
+        WindowDpi.ResizeInDips(this, 1100, 750);
         _root.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ApplicationPageBackgroundThemeBrush"];
         _root.Language = L10n.Language;
         _root.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(250) });

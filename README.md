@@ -26,6 +26,7 @@ Windows向けコミックビューアーです。
 - ファイル名・フォルダー名へレーティングタグを付け外し
 - 右とじ／左とじ、一枚／二枚／自動判定の全画面ビューワー
 - SQLiteによる設定とクイックアクセスの保存
+- Windows の表示スケールに対応（PerMonitorV2）。文字・UI はモニターの DPI に合わせて描画し、倍率変更時はプレビュー・PDF の閲覧画像を読み直します。
 - `%LocalAppData%\Lilium\cache` のディスクサムネイルキャッシュ（最大300×400、JPEG品質70、S/M/L共通）。「キャッシュ設定」で500 MB～5 GBの上限と手動削除。超過時は利用日時順で90％まで自動整理。
 
 ## 実行方法
@@ -71,3 +72,4 @@ Windows向けコミックビューアーです。
 - フォーカス・複数ウィンドウの確認項目: `_external/focus-dialog-check.md`
 - メニュー・設定の確認項目: `_external/menu-settings-check.md`
 - プレビューの仕様と確認項目: `_external/preview-pane.md`
+- 表示スケールの実装と確認項目: `_external/display-scaling.md`

@@ -86,7 +86,7 @@
                 <GridView.ItemTemplate><DataTemplate x:DataType="local:LibraryItem">
                     <Grid Width="{x:Bind CardWidth}" Height="{x:Bind CardHeight}" Margin="4" Background="Transparent" AllowDrop="True" DragOver="Files_DragOver" Drop="Files_Drop" ToolTipService.ToolTip="{x:Bind Path}" PointerEntered="Item_PointerEntered" DoubleTapped="Thumbnail_DoubleTapped" RightTapped="Thumbnail_RightTapped">
                         <Border CornerRadius="8" Margin="0,0,0,32"><Grid><Grid.Background><ImageBrush ImageSource="{x:Bind Thumbnail, Mode=OneWay}" Stretch="Uniform" AlignmentX="Center" AlignmentY="Center" /></Grid.Background><FontIcon Glyph="&#xE8B7;" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{x:Bind FolderIconVisibility, Mode=OneWay}" /></Grid></Border>
-                        <FontIcon Glyph="&#xE8A5;" FontSize="48" Margin="0,0,0,32" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{x:Bind FileIconVisibility}" />
+                        <FontIcon Glyph="&#xE8A5;" FontSize="48" Margin="0,0,0,32" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{x:Bind FileIconVisibility, Mode=OneWay}" />
                         <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="6" Padding="5,2" CornerRadius="4" Background="#CC202020" Visibility="{x:Bind RatingVisibility}" IsHitTestVisible="False">
                             <TextBlock Text="{x:Bind RatingLabel}" Foreground="#FFFFD166" FontSize="12" />
                         </Border>
