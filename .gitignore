@@ -25,3 +25,8 @@ AppPackages/
 *.snk
 *.pem
 *.key
+
+# Local working images and environment handoff notes
+/images/
+/_external/Codex引継ぎdoc_20261006_更新版.md
+/_external/handoff-diagnosis-20261006.md
