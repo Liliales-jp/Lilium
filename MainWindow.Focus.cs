@@ -95,7 +95,7 @@ public sealed partial class MainWindow
             if (!CanApplyNavigationSelection(request)) return;
             try
             {
-                if (!request.Navigation)
+                if (!request.Navigation || restore is not null)
                 {
                     foreach (var item in selection)
                     {

@@ -169,7 +169,6 @@ internal sealed partial class SettingsWindow : Window
                     (typeof(App).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? L10n.Get("SettingsWindow_022"))));
                 break;
             case "help":
-                _body.Children.Add(Text(L10n.Get("SettingsWindow_023")));
                 var help = new Button { Content = L10n.Get("SettingsWindow_024") };
                 help.Click += (_, _) =>
                 {

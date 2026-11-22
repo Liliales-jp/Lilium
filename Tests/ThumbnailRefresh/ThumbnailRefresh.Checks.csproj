@@ -8,5 +8,7 @@
   <ItemGroup>
     <Compile Include="../../ThumbnailRefreshState.cs" Link="ThumbnailRefreshState.cs" />
     <Compile Include="../../FolderRequests.cs" Link="FolderRequests.cs" />
+    <Compile Include="../../FolderFilterState.cs" Link="FolderFilterState.cs" />
+    <Compile Include="../../FolderSearchProgress.cs" Link="FolderSearchProgress.cs" />
   </ItemGroup>
 </Project>

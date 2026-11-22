@@ -3,6 +3,11 @@ Lilium Help
 The keys and mouse actions below are defaults. Edit supported commands under Settings > Keyboard and select Apply to update all windows immediately. Check that page for your current bindings. Draft changes are inactive until applied.
 
 Library
+Search and explicit folder loads clear the thumbnail area and show the phase, checked counts, elapsed time, and a Cancel button at the top. Cancellation or failure restores the previous list, applied filters, selection, and scroll position. A new search or navigation cancels the older request.
+On completion, only thumbnails are shown. If there are no matches, the list says "No items match the conditions". Automatic background refreshes do not clear the list. Esc continues to mean Up.
+Opening a different folder or using Up clears rating, keyword, and recursive search filters. Back and Forward restore that history entry's filters, selection, and scroll position, then search the current contents again. Reopening the same location and refreshing retain the applied filters.
+Press Enter or Search to apply keyword and recursive search changes. Rating filters apply when selected. Draft keywords are not applied by rating changes or refreshes. Clear resets all filters.
+Search, rating changes, and Clear update the current history entry. History lasts until the window closes. Opening an image or PDF in the reader retains the library filters.
 Normal folder covers use images, ZIP/CBZ covers, or PDF first pages. Search checks the folder itself, then children, then grandchildren. Folders at each depth and files within each folder use natural name order. Search is limited to 256 folders and excludes hidden/system items and links.
 Open a PDF to read its pages in the reader. The first page is used as its cover thumbnail. PDFs requiring an opening password, PDFs inside ZIP/CBZ archives, and a PDF page overview are not supported.
 Open a ZIP or CBZ to browse its images, folders, and other files. Files that are not supported images are shown but cannot be opened. Use Up, Back, and Forward as you would in a normal folder.
@@ -13,9 +18,9 @@ Backspace / Mouse Back: Back in folder history
 Mouse Forward: Forward in folder history
 Esc: Go up one folder
 Ctrl+C / Ctrl+X / Ctrl+V: Copy / Cut / Paste
-If exactly one folder is selected, Ctrl+V pastes into it; otherwise, it pastes into the current location.
-Even when the folder tree has focus, Ctrl+V uses the selection in the list on the right.
-In a text input, Ctrl+V pastes text normally.
+If exactly one folder is selected, Ctrl+V pastes into it; otherwise, it pastes into the current location
+Even when the folder tree has focus, Ctrl+V uses the selection in the list on the right
+In a text input, Ctrl+V pastes text normally
 F2: Rename
 Del: Move to Recycle Bin
 Ctrl+Shift+N: New folder
@@ -25,15 +30,15 @@ F5: Refresh
 0–5: Change the selected item's rating (rating information is added to its name)
 Ctrl / Shift + click: Select multiple items
 Left-click a blank area: Clear selection
-Drag: Move within the same drive; copy to another drive. Ctrl + drag: Copy; Shift + drag: Move.
-Turn on Always move under Settings > Controls > File operations to move regardless of drive, except while holding Ctrl to copy.
+Drag: Move within the same drive; copy to another drive; Ctrl + drag: Copy; Shift + drag: Move
+Turn on Always move under Settings > Controls > File operations to move regardless of drive, except while holding Ctrl to copy
 
 Reader
 The reading controls below also work with PDFs. Pages follow the PDF's order; a landscape spread remains one page. PDF editing, text search, and printing are not supported.
-The reader opens full screen on the same monitor as the library window that opened it.
+The reader opens full screen on the same monitor as the library window that opened it
 Move the pointer into the bottom 10% of the screen to show the controls. Move away from that area and the panel to hide them.
-Use the panel to jump to the first or last page, turn pages, close the reader, and change the page mode or binding direction.
-Binding changes are saved and also applied to the library window that opened this reader.
+Use the panel to jump to the first or last page, turn pages, close the reader, and change the page mode or binding direction
+Binding changes are saved and also applied to the library window that opened this reader
 Right-to-left: Left-click for the next page, right-click for the previous page
 Left-to-right: Right-click for the next page, left-click for the previous page
 Mouse wheel down / up: Next / Previous
@@ -46,20 +51,20 @@ Space: Next page
 Dialogs
 Enter: Primary action (create, rename, continue, save, etc.)
 Esc: Cancel / Close
-During an operation, Esc requests cancellation and waits for a safe stop.
-When a selection list is open, it handles selection first.
+During an operation, Esc requests cancellation and waits for a safe stop
+When a selection list is open, it handles selection first
 
 Settings
-Open Settings at the bottom left for language, cache settings, and this help.
-There is one settings window per running app instance.
+Open Settings at the bottom left for language, cache settings, and this help
+There is one settings window per running app instance
 Closing the last library window also closes settings. An active cache operation finishes before the app exits.
 Select Japanese or English under Display > Language. The selection is saved immediately and takes effect after restarting Lilium. Close all Lilium windows before starting again.
 Choose the cache size with the slider and select Apply to save. Cache deletion requires confirmation.
-Thumbnails use JPEG quality 70, up to 300 × 400 pixels, shared by S/M/L display sizes.
+Thumbnails use JPEG quality 70, up to 300 × 400 pixels, shared by S/M/L display sizes
 The size limit is 500 MB–5 GB. When exceeded, the least recently used cache is removed until usage reaches 90% of the limit.
-Clear cache on a folder regenerates images directly inside that folder.
+Clear cache on a folder regenerates images directly inside that folder
 Original images, ratings, and settings are not deleted. Images in subfolders are not included.
-The current list is refreshed and regenerated; other locations regenerate when opened next.
+The current list is refreshed and regenerated; other locations regenerate when opened next
 
 Preview pane
 Use Preview to the right of Recent, separated by a vertical divider, to open or collapse the pane. It shares the thumbnail area's height; drag its border to resize it.

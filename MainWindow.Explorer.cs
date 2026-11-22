@@ -109,8 +109,12 @@ public sealed partial class MainWindow
         BackButton.IsEnabled = _folderRequests.CanGoBack;
         ForwardButton.IsEnabled = _folderRequests.CanGoForward;
     }
-    private Task NavigateHistoryAsync(int delta) => LoadFolderAsync(_folderRequests.NavigateHistory(delta, (source, destination) =>
-        ArchiveLocation.TryParse(source, out var archive) ? archive!.FocusPathWhenReturningTo(destination) : null));
+    private Task NavigateHistoryAsync(int delta)
+    {
+        RememberCurrentFolderView();
+        return LoadFolderAsync(_folderRequests.NavigateHistory(delta, (source, destination) =>
+            ArchiveLocation.TryParse(source, out var archive) ? archive!.FocusPathWhenReturningTo(destination) : null));
+    }
     private async void HistoryBack_Click(object sender, RoutedEventArgs e) => await NavigateHistoryAsync(-1);
     private async void HistoryForward_Click(object sender, RoutedEventArgs e) => await NavigateHistoryAsync(1);
     private async void Refresh_Click(object sender, RoutedEventArgs e) => await RefreshItemsAsync();
@@ -220,15 +224,10 @@ public sealed partial class MainWindow
         }
         catch (Exception ex) { await ShowMessageAsync(L10n.Get("MainWindow_Explorer_001"), ex.Message); }
     }
-    private async void SearchSplit_Click(SplitButton sender, SplitButtonClickEventArgs args) => await RefreshItemsAsync();
+    private async void SearchSplit_Click(SplitButton sender, SplitButtonClickEventArgs args) => await ApplySearchAsync();
     private async void ClearSearch_Click(object sender, RoutedEventArgs e)
     {
-        KeywordBox.Text = "";
-        RecursiveSearch.IsChecked = false;
-        _initializing = true;
-        try { FolderRatingBox.SelectedIndex = 0; FileRatingBox.SelectedIndex = 0; }
-        finally { _initializing = false; }
-        await RefreshItemsAsync();
+        await RefreshItemsAsync(filters: FolderFilterState.Empty, updateSearchInputs: true);
     }
     private async Task<bool> ExplorerKeyAsync(KeyRoutedEventArgs e)
     {
@@ -339,7 +338,7 @@ public sealed partial class MainWindow
         e.DragUIOverride.IsCaptionVisible = false;
         e.DragUIOverride.IsGlyphVisible = false;
         e.DragUIOverride.IsContentVisible = false;
-        if (_closed || _fileOperationBusy || destination is null || !HasDragFiles(e))
+        if (_closed || _fileOperationBusy || _folderLoad.Request is not null || destination is null || !HasDragFiles(e))
         {
             e.AcceptedOperation = DataPackageOperation.None;
             if (!_closed) HideDragHint();
@@ -468,7 +467,7 @@ public sealed partial class MainWindow
         HideDragHint();
         var destination = FolderAt(sender) ?? DropDestination(e);
         TraceDrag($"Drop destination={destination} modifiers={e.Modifiers} busy={_fileOperationBusy}");
-        if (_fileOperationBusy || destination is null || !HasDragFiles(e))
+        if (_fileOperationBusy || _folderLoad.Request is not null || destination is null || !HasDragFiles(e))
         {
             e.AcceptedOperation = DataPackageOperation.None;
             e.Handled = true;

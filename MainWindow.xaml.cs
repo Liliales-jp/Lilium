@@ -36,6 +36,7 @@ public sealed partial class MainWindow : Window
         InitializeExplorer();
         InitializeThumbnails();
         InitializePreview();
+        InitializeFolderSearchProgress();
         AppServices.Store.QuickAccessChanged += Store_QuickAccessChanged;
         ((App)Application.Current).RegisterLibraryWindow(this);
     }
@@ -178,22 +179,38 @@ public sealed partial class MainWindow : Window
         path = Path.GetFullPath(path);
         return ArchiveLocation.IsArchiveFile(path) && File.Exists(path)
             ? OpenArchiveFolderAsync(ArchiveLocation.Folder(path, ""))
-            : LoadFolderAsync(_folderRequests.Navigate(path, focusPath, persistFolder));
+            : NavigateToFolderAsync(path, focusPath, persistFolder);
     }
 
     private Task<FolderLoadResult> OpenArchiveFolderAsync(string location) =>
-        LoadFolderAsync(_folderRequests.Navigate(location, persistFolder: false));
+        NavigateToFolderAsync(location, persistFolder: false);
+
+    private Task<FolderLoadResult> NavigateToFolderAsync(string location, string? focusPath = null,
+        bool persistFolder = true)
+    {
+        RememberCurrentFolderView();
+        return LoadFolderAsync(_folderRequests.Navigate(location, focusPath, persistFolder));
+    }
 
     private Task<FolderLoadResult> RefreshItemsAsync(bool automatic = false, bool refreshTree = false,
-        ThumbnailRefreshState? restore = null) =>
-        LoadFolderAsync(_folderRequests.Refresh(automatic), refreshTree, restore);
+        ThumbnailRefreshState? restore = null, FolderFilterState? filters = null,
+        bool updateSearchInputs = false)
+    {
+        RememberCurrentFolderView();
+        return LoadFolderAsync(_folderRequests.Refresh(automatic, filters, updateSearchInputs), refreshTree, restore,
+            showProgress: !automatic);
+    }
 
     private async Task<FolderLoadResult> LoadFolderAsync(FolderRequests.Request? request, bool refreshTree = false,
-        ThumbnailRefreshState? restore = null)
+        ThumbnailRefreshState? restore = null, bool showProgress = true)
     {
         if (request is null) return new FolderLoadResult(null);
         try
         {
+        if (request.Navigation) restore = request.View;
+        else if (restore is null || !string.Equals(restore.Folder, request.Folder, StringComparison.OrdinalIgnoreCase))
+            restore = _folderLoad.Previous?.View ?? _navigationRefreshState ?? CaptureThumbnailRefreshState();
+        var progress = BeginFolderSearch(request, showProgress);
         CancelNavigationFocus();
         CancelAddressSuggestions();
         UpdateHistoryButtons();
@@ -201,21 +218,20 @@ public sealed partial class MainWindow : Window
         var cancellationToken = request.CancellationToken;
         // Capture all controls before the first await so a request is internally consistent.
         var size = SelectedTag(ThumbnailSizeBox, "M");
-        var keyword = KeywordBox.Text;
-        var recursive = RecursiveSearch.IsChecked && !string.IsNullOrWhiteSpace(keyword);
-        var folderRating = int.Parse(SelectedTag(FolderRatingBox, "0"));
-        var fileRating = int.Parse(SelectedTag(FileRatingBox, "0"));
+        var keyword = request.Filters.Keyword;
+        var recursive = request.Filters.Recursive;
+        var folderRating = request.Filters.FolderRating;
+        var fileRating = request.Filters.FileRating;
         var folderSort = SelectedTag(SortBox, "name");
         var fileSort = SelectedTag(FileSortBox, "name");
 
         async Task<FolderLoadResult> FailedAsync(FolderReadStatus status, Exception? error, string? failedPath = null)
         {
             if (!_folderRequests.TryFail(request)) return new FolderLoadResult(request);
+            RestoreFolderSearch(request);
+            SyncFilterControls(_folderRequests.CurrentFilters, updateSearchInputs: false);
             UpdateHistoryButtons();
-            ArchiveLocation.TryParse(_currentFolder, out var previousArchive);
-            CurrentFolderText.Text = previousArchive?.DisplayPath ?? _currentFolder ?? "";
-            CurrentFolderText.IsEnabled = previousArchive is null;
-            if (_currentFolder is not null && previousArchive is null) SyncTree(_currentFolder);
+            RestoreCommittedFolderLocation();
             ArchiveLocation.TryParse(failedPath ?? folder, out var failedArchive);
             if (error is ArchivePasswordException)
             {
@@ -236,25 +252,36 @@ public sealed partial class MainWindow : Window
         {
             ArchiveLocation.TryParse(folder, out var archive);
             var read = archive is null
-                ? await FileCatalog.ReadFolderAsync(folder, size, cancellationToken)
-                : await ArchiveCatalog.ReadFolderAsync(archive, size, recursive, cancellationToken);
+                ? await FileCatalog.ReadFolderAsync(folder, size, cancellationToken, progress)
+                : await ArchiveCatalog.ReadFolderAsync(archive, size, recursive, cancellationToken, progress);
             if (!_folderRequests.IsCurrent(request)) return new FolderLoadResult(request);
+            cancellationToken.ThrowIfCancellationRequested();
             if (!read.IsSuccess) return await FailedAsync(read.Status, read.Error);
             items = read.Items;
             if (recursive && archive is null)
             {
-                var descendants = await FileCatalog.ReadDescendantFoldersAsync(folder, size, cancellationToken);
+                progress?.SetPhase(FolderSearchPhase.Descendants);
+                var descendants = await FileCatalog.ReadDescendantFoldersAsync(folder, size, cancellationToken, progress);
                 if (!_folderRequests.IsCurrent(request)) return new FolderLoadResult(request);
+                cancellationToken.ThrowIfCancellationRequested();
                 if (!descendants.IsSuccess)
                     return await FailedAsync(FolderReadStatus.Partial, descendants.Error, descendants.FailedPath);
                 items.AddRange(descendants.Items);
             }
+            progress?.SetPhase(FolderSearchPhase.Sorting);
             visible = await Task.Run(() => FileCatalog.FilterAndSort(items,
                 archive is null ? folderRating : 0, archive is null ? fileRating : 0,
                 keyword, folderSort, fileSort, cancellationToken), cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+            if (_folderRequests.TryFail(request))
+            {
+                RestoreFolderSearch(request);
+                RestoreCommittedFolderLocation();
+                UpdateHistoryButtons();
+            }
             return new FolderLoadResult(request);
         }
         catch (Exception ex)
@@ -266,9 +293,8 @@ public sealed partial class MainWindow : Window
         // No await between this guard and the entire UI/navigation commit.
         // Superseded requests cannot roll back history, resync the tree or show errors.
         if (!_folderRequests.TryCommit(request)) return new FolderLoadResult(request);
-        if (request.Navigation) restore = null;
-        else if (restore is null || !string.Equals(restore.Folder, folder, StringComparison.OrdinalIgnoreCase))
-            restore = CaptureThumbnailRefreshState();
+        EndFolderSearch(request);
+        SyncFilterControls(request.Filters, request.UpdateSearchInputs);
         var selectedPaths = (restore?.SelectedPaths ?? []).ToHashSet(StringComparer.OrdinalIgnoreCase);
         StopThumbnails();
         CancelNavigationFocus();
@@ -278,6 +304,7 @@ public sealed partial class MainWindow : Window
         CurrentFolderText.IsEnabled = currentArchive is null;
         ThumbnailGrid.ResetNavigationFocus();
         _items.Clear(); foreach (var item in visible) _items.Add(item);
+        FolderNoMatches.Visibility = visible.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         if (request.Navigation)
         {
             if (currentArchive is null) RecordNavigation(folder);
@@ -289,9 +316,19 @@ public sealed partial class MainWindow : Window
         StartThumbnails();
         if (refreshTree) BuildDriveTree();
         var target = visible.FirstOrDefault(i => string.Equals(i.Path, request.FocusPath, StringComparison.OrdinalIgnoreCase)) ?? visible.FirstOrDefault();
-        QueueFolderSelection(request, request.Navigation
-            ? target is null ? [] : [target]
-            : visible.Where(i => selectedPaths.Contains(i.Path)).ToArray(), restore);
+        var selection = visible.Where(i => selectedPaths.Contains(i.Path)).ToArray();
+        if (request.Navigation)
+        {
+            if (restore is null || selection.Length == 0) selection = target is null ? [] : [target];
+            if (restore is not null)
+                restore = restore with
+                {
+                    FocusPath = visible.FirstOrDefault(i => string.Equals(i.Path, restore.FocusPath,
+                        StringComparison.OrdinalIgnoreCase))?.Path ?? selection.FirstOrDefault()?.Path,
+                    RestoreFocus = true
+                };
+        }
+        QueueFolderSelection(request, selection, restore);
         return new FolderLoadResult(request);
         }
         finally { request.Dispose(); }
@@ -302,7 +339,11 @@ public sealed partial class MainWindow : Window
         if (_initializing) return;
         if (ReferenceEquals(sender, FolderRatingBox) || ReferenceEquals(sender, FileRatingBox))
         {
-            await RefreshItemsAsync();
+            var filters = _folderRequests.RequestedFilters;
+            filters = ReferenceEquals(sender, FolderRatingBox)
+                ? filters with { FolderRating = int.Parse(SelectedTag(FolderRatingBox, "0")) }
+                : filters with { FileRating = int.Parse(SelectedTag(FileRatingBox, "0")) };
+            await RefreshItemsAsync(filters: filters);
             return;
         }
         if (ReferenceEquals(sender, SortBox))
@@ -333,7 +374,12 @@ public sealed partial class MainWindow : Window
         await RefreshItemsAsync();
     }
 
-    private async void KeywordBox_KeyDown(object sender, KeyRoutedEventArgs e) { if (e.Key == VirtualKey.Enter) await RefreshItemsAsync(); }
+    private async void KeywordBox_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key != VirtualKey.Enter) return;
+        e.Handled = true;
+        await ApplySearchAsync();
+    }
     private async void ThumbnailSizeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_initializing) return;

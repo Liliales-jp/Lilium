@@ -64,7 +64,7 @@ public sealed partial class MainWindow
 
     private async Task FileCommandAsync(string command, string? pasteDestination = null, bool allowDuplicate = false, LibraryItem[]? targets = null)
     {
-        if (_fileOperationBusy) return;
+        if (_fileOperationBusy || (_folderLoad.Request is not null && command != "refresh")) return;
         var selected = targets ?? ThumbnailGrid.SelectedItems.OfType<LibraryItem>().ToArray();
         var destination = pasteDestination ?? _currentFolder;
         if (command is not ("refresh" or "selectall" or "deselect") &&

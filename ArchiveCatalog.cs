@@ -75,13 +75,15 @@ internal static class ArchiveCatalog
         return name;
     }
 
-    private static List<(string Name, ZipArchiveEntry Entry)> Images(ZipArchive zip)
+    private static List<(string Name, ZipArchiveEntry Entry)> Images(ZipArchive zip,
+        CancellationToken cancellationToken = default)
     {
         if (zip.Entries.Count > MaxEntries) throw new InvalidDataException(L10n.Get("Archive_TooManyEntries"));
         var images = new List<(string Name, ZipArchiveEntry Entry)>();
         var names = new HashSet<string>(StringComparer.Ordinal);
         foreach (var entry in zip.Entries)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var name = Normalize(entry.FullName);
             if (name.EndsWith('/')) continue;
             if (!ImageExtensions.Contains(Path.GetExtension(name))) continue;
@@ -94,11 +96,12 @@ internal static class ArchiveCatalog
     }
 
     internal static async Task<LibraryFolderReadResult> ReadFolderAsync(
-        ArchiveLocation location, string size, bool recursive, CancellationToken cancellationToken)
+        ArchiveLocation location, string size, bool recursive, CancellationToken cancellationToken,
+        FolderSearchProgress? progress = null)
     {
         try
         {
-            return await Task.Run(() => ReadFolder(location, size, recursive, cancellationToken), cancellationToken);
+            return await Task.Run(() => ReadFolder(location, size, recursive, cancellationToken, progress), cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
         catch (FileNotFoundException ex) { return new([], FolderReadStatus.NotFound, ex); }
@@ -108,16 +111,22 @@ internal static class ArchiveCatalog
     }
 
     private static LibraryFolderReadResult ReadFolder(
-        ArchiveLocation location, string size, bool recursive, CancellationToken cancellationToken)
+        ArchiveLocation location, string size, bool recursive, CancellationToken cancellationToken,
+        FolderSearchProgress? progress)
     {
         if (location.Kind != ArchiveItemKind.Folder) throw new InvalidDataException(L10n.Get("Archive_InvalidEntry"));
         using var zip = ZipFile.OpenRead(location.ArchivePath);
         if (zip.Entries.Count > MaxEntries) throw new InvalidDataException(L10n.Get("Archive_TooManyEntries"));
-        var entries = zip.Entries.Select(entry => (Name: Normalize(entry.FullName), Entry: entry)).ToList();
-        var images = Images(zip);
+        var entries = zip.Entries.Select(entry =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return (Name: Normalize(entry.FullName), Entry: entry);
+        }).ToList();
+        var images = Images(zip, cancellationToken);
         var firstImageByFolder = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var (name, _) in images)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             for (int slash = name.IndexOf('/'); slash >= 0; slash = name.IndexOf('/', slash + 1))
                 firstImageByFolder.TryAdd(name[..(slash + 1)], name);
         }
@@ -127,6 +136,7 @@ internal static class ArchiveCatalog
         foreach (var (name, entry) in entries)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            progress?.ItemChecked();
             if (!name.StartsWith(location.EntryName, StringComparison.Ordinal)) continue;
             var rest = name[location.EntryName.Length..];
             int slash = rest.IndexOf('/');
@@ -163,6 +173,7 @@ internal static class ArchiveCatalog
                 CardWidth = width, CardHeight = height + 32
             });
         }
+        progress?.FolderCompleted();
         return new(items, FolderReadStatus.Success);
     }
 
@@ -173,7 +184,7 @@ internal static class ArchiveCatalog
         {
             using var zip = ZipFile.OpenRead(location.ArchivePath);
             var chosen = location.Kind == ArchiveItemKind.Cover
-                ? Images(zip).FirstOrDefault().Entry
+                ? Images(zip, cancellationToken).FirstOrDefault().Entry
                 : zip.GetEntry(location.EntryName) ?? zip.Entries.FirstOrDefault(
                     entry => Normalize(entry.FullName) == location.EntryName);
             if (chosen is null) throw new FileNotFoundException(L10n.Get("Archive_ImageMissing"));

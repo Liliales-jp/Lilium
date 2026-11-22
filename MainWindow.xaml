@@ -97,6 +97,21 @@
                     </Grid>
                 </DataTemplate></GridView.ItemTemplate>
             </local:ThumbnailGridView>
+                <Border x:Name="FolderSearchStatus" Visibility="Collapsed" VerticalAlignment="Top" Margin="12" Padding="16"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <ProgressRing x:Name="FolderSearchRing" Width="32" Height="32" IsActive="False" VerticalAlignment="Top" />
+                        <StackPanel Grid.Column="1" Spacing="6" AutomationProperties.LiveSetting="Polite">
+                            <TextBlock x:Name="FolderSearchPhaseText" TextWrapping="Wrap" />
+                            <TextBlock x:Name="FolderSearchCounts" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <Button x:Name="CancelFolderSearchButton" Grid.Column="2" VerticalAlignment="Top"
+                                Content="{StaticResource Ui_Search_Cancel}" Click="CancelFolderSearch_Click" />
+                    </Grid>
+                </Border>
+                <TextBlock x:Name="FolderNoMatches" Visibility="Collapsed" VerticalAlignment="Top" Margin="28"
+                           Text="{StaticResource Ui_Search_NoMatches}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
                 <local:PreviewDivider x:Name="PreviewSplitter" Grid.Column="1" Visibility="Collapsed" AutomationProperties.Name="{StaticResource Ui_Preview_Resize}" PointerPressed="PreviewSplitter_PointerPressed" PointerMoved="PreviewSplitter_PointerMoved" PointerReleased="PreviewSplitter_PointerReleased" PointerCaptureLost="PreviewSplitter_PointerCaptureLost" KeyDown="PreviewSplitter_KeyDown" />
                 <Border x:Name="PreviewHost" Grid.Column="2" Background="Black" Visibility="Collapsed" />
             </Grid>

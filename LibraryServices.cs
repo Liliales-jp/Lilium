@@ -37,11 +37,20 @@ public static class FileCatalog
         CancellationToken cancellationToken = default) =>
         await Task.Run(() => ReadFolder(folder, size, cancellationToken), cancellationToken);
 
+    internal static Task<LibraryFolderReadResult> ReadFolderAsync(string folder, string size,
+        CancellationToken cancellationToken, FolderSearchProgress? progress) =>
+        Task.Run(() => ReadFolder(folder, size, cancellationToken, progress), cancellationToken);
+
     public static async Task<LibraryFolderReadResult> ReadDescendantFoldersAsync(string root, string size,
         CancellationToken cancellationToken = default) =>
         await Task.Run(() => ReadDescendantFolders(root, size, cancellationToken), cancellationToken);
 
-    private static LibraryFolderReadResult ReadDescendantFolders(string root, string size, CancellationToken cancellationToken)
+    internal static Task<LibraryFolderReadResult> ReadDescendantFoldersAsync(string root, string size,
+        CancellationToken cancellationToken, FolderSearchProgress? progress) =>
+        Task.Run(() => ReadDescendantFolders(root, size, cancellationToken, progress), cancellationToken);
+
+    private static LibraryFolderReadResult ReadDescendantFolders(string root, string size, CancellationToken cancellationToken,
+        FolderSearchProgress? progress = null)
     {
         var items = new List<LibraryItem>();
         var pending = new Stack<string>();
@@ -59,7 +68,7 @@ public static class FileCatalog
                 if (IsHiddenOrSystem(child.Attributes) ||
                     (child.Attributes & System.IO.FileAttributes.ReparsePoint) != 0) continue;
                 pending.Push(child.Path);
-                var read = ReadFolder(child.Path, size, cancellationToken);
+                var read = ReadFolder(child.Path, size, cancellationToken, progress);
                 if (!read.IsSuccess)
                     return new LibraryFolderReadResult(items, FolderReadStatus.Partial, read.Error, child.Path);
                 items.AddRange(read.Items);
@@ -68,7 +77,8 @@ public static class FileCatalog
         return new LibraryFolderReadResult(items, FolderReadStatus.Success);
     }
 
-    private static LibraryFolderReadResult ReadFolder(string folder, string size, CancellationToken cancellationToken)
+    private static LibraryFolderReadResult ReadFolder(string folder, string size, CancellationToken cancellationToken,
+        FolderSearchProgress? progress = null)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var (width, height) = size switch { "S" => (200, 240), "L" => (300, 400), _ => (240, 320) };
@@ -77,6 +87,7 @@ public static class FileCatalog
         foreach (var entry in result.Entries)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            progress?.ItemChecked();
             if (IsHiddenOrSystem(entry.Attributes)) continue;
             if (entry.IsFolder)
             {
@@ -87,6 +98,7 @@ public static class FileCatalog
                 items.Add(new LibraryItem { Path = entry.Path, DisplayName = entry.Name, IsFolder = false, Modified = entry.Modified, Rating = GetRating(entry.Name), ThumbnailSourcePath = ThumbnailSource(entry.Path), CardWidth = width, CardHeight = height + 32 });
             }
         }
+        if (result.IsSuccess) progress?.FolderCompleted();
         return new LibraryFolderReadResult(items, result.Status, result.Error);
     }
     public static List<LibraryItem> FilterAndSort(IEnumerable<LibraryItem> source, int minimumFolderRating, int minimumFileRating,
