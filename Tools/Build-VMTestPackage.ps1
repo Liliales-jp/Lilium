@@ -1,13 +1,22 @@
+param(
+    [string]$StoreUploadPath
+)
+
 $ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $appPackages = Join-Path $projectRoot 'AppPackages'
 [xml]$packageManifest = Get-Content -LiteralPath (Join-Path $projectRoot 'Package.appxmanifest') -Raw
 $publisher = [string]$packageManifest.Package.Identity.Publisher
 
-& (Join-Path $PSScriptRoot 'Build-StorePackage.ps1') -AllowPlaceholderIdentity
-if ($LASTEXITCODE -ne 0) { throw 'The unsigned MSIX build failed.' }
+if (-not $StoreUploadPath) {
+    $buildOutput = & (Join-Path $PSScriptRoot 'Build-StorePackage.ps1') -AllowPlaceholderIdentity
+    if ($LASTEXITCODE -ne 0) { throw 'The unsigned MSIX build failed.' }
+    $StoreUploadPath = [string]($buildOutput | Select-Object -Last 1)
+}
+$StoreUploadPath = (Resolve-Path -LiteralPath $StoreUploadPath).Path
+$buildDirectory = Split-Path -Parent $StoreUploadPath
 
-$unsignedMsix = Get-ChildItem -LiteralPath $appPackages -Directory |
+$unsignedMsix = Get-ChildItem -LiteralPath $buildDirectory -Directory |
     Where-Object Name -Like '*_Test' |
     ForEach-Object { Get-ChildItem -LiteralPath $_.FullName -Filter 'Lilium_*.msix' -File } |
     Sort-Object LastWriteTime -Descending |
@@ -18,7 +27,12 @@ $dependency = Join-Path $unsignedMsix.DirectoryName 'Dependencies\x64\Microsoft.
 if (-not (Test-Path -LiteralPath $dependency)) { throw 'The x64 Windows App SDK dependency was not found.' }
 
 $signtool = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe'
-if (-not (Test-Path -LiteralPath $signtool)) { throw 'Windows SDK SignTool.exe was not found.' }
+if (-not (Test-Path -LiteralPath $signtool)) {
+    $signtool = Get-ChildItem -LiteralPath (Join-Path $projectRoot '.nuget-packages\microsoft.windows.sdk.buildtools') -Recurse -Filter 'signtool.exe' -File |
+        Where-Object { $_.Directory.Name -eq 'x64' } |
+        Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName
+}
+if (-not $signtool -or -not (Test-Path -LiteralPath $signtool)) { throw 'Windows SDK SignTool.exe was not found.' }
 
 $output = Join-Path $appPackages ('VM-Test-x64-' + (Get-Date -Format 'yyyyMMdd-HHmmss'))
 New-Item -ItemType Directory -Path $output | Out-Null

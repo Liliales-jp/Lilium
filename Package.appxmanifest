@@ -4,11 +4,10 @@
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
   IgnorableNamespaces="uap rescap">
-  <!-- Replace Name and Publisher with the identity assigned in Partner Center before submission. -->
-  <Identity Name="Lilium" Publisher="CN=Lilium" Version="0.1.0.0" />
+  <Identity Name="Liliales.Lilium" Publisher="CN=41F1C16E-24D1-45BD-9222-F8AD2E499279" Version="1.0.0.0" />
   <Properties>
     <DisplayName>Lilium</DisplayName>
-    <PublisherDisplayName>Lilium</PublisherDisplayName>
+    <PublisherDisplayName>Liliales</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
   <Resources>

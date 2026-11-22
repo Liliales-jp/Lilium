@@ -7,7 +7,9 @@
     <AssemblyName>Lilium</AssemblyName>
     <Product>Lilium</Product>
     <Title>Lilium</Title>
-    <Version>0.1.0-dev.20260922</Version>
+    <Version>1.0.0</Version>
+    <InformationalVersion>1.0</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <ApplicationIcon>Assets\Lilium.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x64</Platforms>
@@ -17,6 +19,8 @@
     <EnableMsixTooling Condition="'$(LiliumStorePackage)' == 'true'">true</EnableMsixTooling>
     <SelfContained Condition="'$(LiliumStorePackage)' == 'true'">true</SelfContained>
     <WindowsAppSDKSelfContained Condition="'$(LiliumStorePackage)' == 'true'">false</WindowsAppSDKSelfContained>
+    <DebugType Condition="'$(LiliumStorePackage)' == 'true'">none</DebugType>
+    <DebugSymbols Condition="'$(LiliumStorePackage)' == 'true'">false</DebugSymbols>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
